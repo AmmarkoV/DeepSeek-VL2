@@ -90,7 +90,7 @@ examples_list = [
     # visual grounding - 3
     [
         ["examples/sample03.jpg"],
-        "<|grounding|>Is the conveyor line full? What is the product produced?",
+        "<|grounding|>Is the conveyor line full?",
     ],
 
     # grounding conversation
@@ -622,7 +622,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default="deepseek-ai/deepseek-vl2-tiny",  choices=MODELS, help="model name")
     parser.add_argument("--local_path", type=str, default="", help="huggingface ckpt, optional")
     parser.add_argument("--ip", type=str, default="0.0.0.0", help="ip address")
-    parser.add_argument("--port", type=int, default=37913, help="port number")
+    parser.add_argument("--port", type=int, default=8080, help="port number")
     parser.add_argument("--root_path", type=str, default="", help="root path")
     parser.add_argument("--lazy_load", action='store_true')
     parser.add_argument("--chunk_size", type=int, default=-1,
@@ -637,7 +637,8 @@ if __name__ == "__main__":
     reload_javascript()
     demo.queue(#concurrency_count=CONCURRENT_COUNT, #<- for some reason this emmits an error!
         max_size=MAX_EVENTS).launch(
-        favicon_path="deepseek_vl2/serve/assets/favicon.ico",
+        #favicon_path="deepseek_vl2/serve/assets/favicon.ico",
+        favicon_path="examples/favicon.ico",
         inbrowser=False,
         server_name=args.ip,
         server_port=args.port,
