@@ -623,6 +623,7 @@ if __name__ == "__main__":
     parser.add_argument("--local_path", type=str, default="", help="huggingface ckpt, optional")
     parser.add_argument("--ip", type=str, default="0.0.0.0", help="ip address")
     parser.add_argument("--port", type=int, default=8080, help="port number")
+    parser.add_argument("--public", type=bool, default=False, help="share link")
     parser.add_argument("--root_path", type=str, default="", help="root path")
     parser.add_argument("--lazy_load", action='store_true')
     parser.add_argument("--chunk_size", type=int, default=-1,
@@ -640,6 +641,7 @@ if __name__ == "__main__":
         #favicon_path="deepseek_vl2/serve/assets/favicon.ico",
         favicon_path="examples/favicon.ico",
         inbrowser=False,
+        share=args.public,
         server_name=args.ip,
         server_port=args.port,
         root_path=args.root_path
