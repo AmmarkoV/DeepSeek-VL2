@@ -1,8 +1,54 @@
+#!/bin/python3
+#To get dependencies, use:
+#             python3 -m pip install gradio_client
+
 import json
 import time
 import sys
 import os
 from gradio_client import Client, handle_file
+
+
+import re
+def sanitize_string(input_string):
+    """
+    Trims leading and trailing whitespace and escapes problematic characters
+    that could disrupt JSON parsing.
+    """
+    if not isinstance(input_string, str):
+        raise ValueError("Input must be a string.")
+    
+    # Step 1: Trim leading and trailing whitespace
+    sanitized = input_string.strip()
+
+    # Step 2: Replace problematic characters
+    # Replace stray backslashes with empty string
+    sanitized = sanitized.replace("\\", "")
+
+    # Remove ASCII control characters (except newline, tab)
+    sanitized = re.sub(r"[\x00-\x1F\x7F]", "", sanitized)
+
+    # Replace newline within strings with a space
+    sanitized = sanitized.replace("\n", " ").replace("\r", "")
+
+    # Step 3: Escape remaining double quotes
+    sanitized = sanitized.replace('"', '\\"')
+
+    return sanitized
+
+
+def remainingTimeString(seconds):
+    if seconds < 60:
+        return f"Remaining Time {seconds} seconds"
+    elif seconds < 3600:
+        minutes = seconds // 60
+        return f"Remaining Time {minutes} minutes"
+    elif seconds < 86400:
+        hours = seconds // 3600
+        return f"Remaining Time {hours} hours"
+    else:
+        days = seconds // 86400
+        return f"Remaining Time {days} days"
 
 # Replace with the actual server URL if different
 ip = "127.0.0.1"
@@ -36,7 +82,7 @@ if len(sys.argv) > 1:
                 directoryList = os.listdir(directory)
                 directoryList.sort()
                 for file in directoryList:
-                    if file.lower().endswith(('.jpg', '.png', '.jpeg', '.txt')):
+                    if file.lower().endswith(('.jpg', '.png', '.jpeg', '.txt', '.in')):
                         files.append(os.path.join(directory, file))
             else:
                 print(f"Error: Directory '{directory}' does not exist.")
@@ -87,20 +133,22 @@ for i in range(startAt, len(files)):
 
     # Make query to VLLM
     try:
+        imageList = None
         imageFile = None
         this_user_prompt = user_prompt
-        if image_path.endswith('.txt'):
+        if (image_path.endswith('.txt') or image_path.endswith('.in') ):
             with open(image_path, 'r') as txt_file:
                 this_user_prompt = txt_file.read().strip()
         else:
             imageFile = handle_file(image_path)
+            imageList = [ imageFile ]
 
         # Reset state 
         result = client.predict(api_name="/reset_state" )
 
         # Send the image file path and the prompt to the Gradio app for processing
         result = client.predict(
-            input_images=[imageFile],           # Provide the file path directly
+            input_images=imageList,           # Provide the file path directly
             input_text=this_user_prompt,     # Adapted prompt parameter
             api_name="/transfer_input"
         )
@@ -117,11 +165,11 @@ for i in range(startAt, len(files)):
             api_name="/predict"
         )
 
-
-
     except Exception as e:
-        print(f"Failed to complete job at index {i}: {e}")
-        output_file = f"partial_until_{i}_{output_file}"
+        print(f"Failed to complete job {image_path} at index {i}: {e}")
+        if (i!=0):
+         print("Please rerun using --start ",i-1)
+        output_file = os.path.join( os.path.dirname(output_file), f"partial_until_{i}_" + os.path.basename(output_file) )
         break
 
     # Calculate elapsed time
@@ -132,10 +180,11 @@ for i in range(startAt, len(files)):
     # Output the result
     #print("result[0][0][1] ",result[0][0][1])
     question = this_user_prompt #Don't try to recover it from the list..
-    response = result[0][0][1]
+    response = sanitize_string(result[0][0][1])
 
     # Print on screen
-    print(f"Processing {1 + i}/{len(files)} | {hz:.2f} Hz / remaining {remaining / 60:.2f} minutes")
+    print(f"Processing {1 + i}/{len(files)} | {hz:.2f} Hz / " , end="")
+    print(remainingTimeString(remaining))
     print(f"Image: {image_path}\nResponse: {response}")
 
     # Store each path as the key pointing to each description
