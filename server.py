@@ -377,7 +377,7 @@ def predict(
     max_length_tokens,
     max_context_length_tokens,
     model_select_dropdown,
-    translate_checkbox
+    greek_translation
 ):
     """
     Function to predict the response based on the user's input and selected model.
@@ -423,7 +423,7 @@ def predict(
         except Exception as e:
             print(f"Error loading image: {e}")
 
-    TRANSLATE = translate_checkbox
+    TRANSLATE = greek_translation
     if (not contains_greek(text)):
            TRANSLATE = False
 
@@ -507,7 +507,7 @@ def retry(
     max_length_tokens,
     max_context_length_tokens,
     model_select_dropdown,
-    translate_checkbox,
+    greek_translation,
 ):
     if len(history) == 0:
         yield (chatbot, history, "Empty context")
@@ -643,7 +643,7 @@ def build_demo(args):
                         value=args.model_name,
                         interactive=True,
                     )
-                    translate_checkbox = gr.Checkbox(label="Ελληνικά", value=True)
+                    greek_translation = gr.Checkbox(label="Ελληνικά", value=True)
 
                     # show images, but not visible
                     show_images = gr.HTML(visible=False)
@@ -674,7 +674,7 @@ def build_demo(args):
             max_length_tokens,
             max_context_length_tokens,
             model_select_dropdown,
-            translate_checkbox
+            greek_translation
         ]
         output_widgets = [chatbot, history, status_display]
 
