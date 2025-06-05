@@ -742,7 +742,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     demo = build_demo(args)
-    demo.title = "DeepSeek-VL2 Chatbot"
+    demo.title = "VLM - Platform"
 
     reload_javascript()
     demo.queue(#concurrency_count=CONCURRENT_COUNT, #<- for some reason this emmits an error!
