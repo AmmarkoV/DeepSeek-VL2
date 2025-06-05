@@ -54,6 +54,7 @@ python3 -m pip install flash-attn --no-build-isolation
 python3 -m pip install xformers gradio
 python3 -m pip install --upgrade gradio
 
+./setup_translator.sh
 #You can now run using :
 #CUDA_VISIBLE_DEVICES=2 python3 web_demo.py --model_name "deepseek-ai/deepseek-vl2-tiny"  --port 8080
 

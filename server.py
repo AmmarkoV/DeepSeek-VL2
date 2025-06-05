@@ -20,6 +20,8 @@
 # -*- coding:utf-8 -*-
 from argparse import ArgumentParser
 
+TRANSLATE=True
+
 import io
 import sys
 import base64
@@ -27,6 +29,97 @@ from PIL import Image
 
 import gradio as gr
 import torch
+
+
+import argostranslate.package
+import argostranslate.translate
+import re
+
+
+from_code = "en"
+to_code = "el"
+
+# Download and install Argos Translate package
+argostranslate.package.update_package_index()
+available_packages = argostranslate.package.get_available_packages()
+package_to_install = next(
+    filter(
+        lambda x: x.from_code == from_code and x.to_code == to_code, available_packages
+    )
+)
+argostranslate.package.install_from_path(package_to_install.download())
+
+
+def contains_greek(text: str) -> bool:
+    # Greek Unicode ranges:
+    # Lowercase α (U+03B1) to ω (U+03C9)
+    # Uppercase Α (U+0391) to Ω (U+03A9)
+    pattern = r'[\u0391-\u03A9\u03B1-\u03C9]'
+    return bool(re.search(pattern, text))
+
+def ensure_translation_package(from_code: str, to_code: str):
+    argostranslate.translate.load_installed_languages()
+    installed_languages = argostranslate.translate.get_installed_languages()
+
+    # Check if translation already exists
+
+    from_lang = next((lang for lang in installed_languages if lang.code == from_code), None)
+    if from_lang:
+        #translation = next((t for t in from_lang.translations if t.to_lang.code == to_code), None)
+        translation = next((t for t in from_lang.translations_to if t.to_lang.code == to_code), None)
+
+        if translation:
+            return  # Already installed
+
+    # Download and install
+    argostranslate.package.update_package_index()
+    available_packages = argostranslate.package.get_available_packages()
+    package = next(
+        (p for p in available_packages if p.from_code == from_code and p.to_code == to_code),
+        None
+    )
+    if not package:
+        raise RuntimeError(f"No package found for {from_code} → {to_code}")
+    argostranslate.package.install_from_path(package.download())
+    argostranslate.translate.load_installed_languages()
+ 
+
+def _preserve_tags_and_translate(text: str, from_code: str, to_code: str) -> str:
+    """
+    Translate the entire text at once, but preserve tags like <image> by temporarily replacing them,
+    then restoring after translation.
+    """
+
+    ensure_translation_package(from_code, to_code)
+    argostranslate.translate.load_installed_languages()
+
+    tag_pattern = re.compile(r"<[^>]+>")
+
+    # Extract tags and replace them with placeholders
+    tags = []
+    def tag_replacer(match):
+        tags.append(match.group(0))
+        return f"__TAG{len(tags)-1}__"
+    
+    text_with_placeholders = tag_pattern.sub(tag_replacer, text)
+
+    # Translate the whole text with placeholders
+    translated = argostranslate.translate.translate(text_with_placeholders, from_code, to_code)
+
+    # Restore tags back
+    for i, tag in enumerate(tags):
+        translated = translated.replace(f"__TAG{i}__", tag)
+
+    return translated
+
+def translate_en_to_el(response: str) -> str:
+    return _preserve_tags_and_translate(response, "en", "el")
+
+
+def translate_el_to_en(prompt: str) -> str:
+    return _preserve_tags_and_translate(prompt, "el", "en")
+
+
 
 from deepseek_vl2.serve.app_modules.gradio_utils import (
     cancel_outputing,
@@ -284,6 +377,7 @@ def predict(
     max_length_tokens,
     max_context_length_tokens,
     model_select_dropdown,
+    translate_checkbox
 ):
     """
     Function to predict the response based on the user's input and selected model.
@@ -329,14 +423,23 @@ def predict(
         except Exception as e:
             print(f"Error loading image: {e}")
 
+    TRANSLATE = translate_checkbox
+    if (not contains_greek(text)):
+           TRANSLATE = False
+
+    if (TRANSLATE):
+        translated_prompt = translate_el_to_en(text)
+    else:
+        translated_prompt = text
+
     conversation = generate_prompt_with_history(
-        text,
-        pil_images,
-        history,
-        vl_chat_processor,
-        tokenizer,
-        max_length=max_context_length_tokens,
-    )
+                                                translated_prompt,
+                                                pil_images,
+                                                history,
+                                                vl_chat_processor,
+                                                tokenizer,
+                                                max_length=max_context_length_tokens,
+                                               )
     all_conv, last_image = convert_conversation_to_prompts(conversation)
 
     stop_words = conversation.stop_str
@@ -358,6 +461,9 @@ def predict(
         ):
             full_response += x
             response = strip_stop_words(full_response, stop_words)
+
+            if (TRANSLATE):
+               response = translate_en_to_el(response)
             conversation.update_last_message(response)
             gradio_chatbot_output[-1][1] = response
 
@@ -401,6 +507,7 @@ def retry(
     max_length_tokens,
     max_context_length_tokens,
     model_select_dropdown,
+    translate_checkbox,
 ):
     if len(history) == 0:
         yield (chatbot, history, "Empty context")
@@ -536,6 +643,7 @@ def build_demo(args):
                         value=args.model_name,
                         interactive=True,
                     )
+                    translate_checkbox = gr.Checkbox(label="Ελληνικά", value=True)
 
                     # show images, but not visible
                     show_images = gr.HTML(visible=False)
@@ -566,6 +674,7 @@ def build_demo(args):
             max_length_tokens,
             max_context_length_tokens,
             model_select_dropdown,
+            translate_checkbox
         ]
         output_widgets = [chatbot, history, status_display]
 
