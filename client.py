@@ -66,6 +66,7 @@ top_k = 50
 top_p = 0.9
 max_tokens = 100
 
+greek = False
 startAt = 0
 
 argumentStart = 1
@@ -93,6 +94,9 @@ if len(sys.argv) > 1:
         elif sys.argv[i] == "--port":
             port = sys.argv[i + 1]
             argumentStart += 2
+        elif sys.argv[i] == "--greek":
+            greek = True
+            argumentStart += 1
         elif sys.argv[i] == "--prompt":
             user_prompt = sys.argv[i + 1]
             argumentStart += 2
@@ -161,7 +165,7 @@ for i in range(startAt, len(files)):
             max_length_tokens=max_tokens, # Adapted max_tokens parameter
 		    repetition_penalty=1.1,
 		    max_context_length_tokens=4096,
-            greek_translation=False,
+            greek_translation=greek,
 		    #model_select_dropdown="deepseek-ai/deepseek-vl2-tiny",
             api_name="/predict"
         )

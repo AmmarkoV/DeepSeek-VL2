@@ -55,7 +55,9 @@ def contains_greek(text: str) -> bool:
     # Lowercase α (U+03B1) to ω (U+03C9)
     # Uppercase Α (U+0391) to Ω (U+03A9)
     pattern = r'[\u0391-\u03A9\u03B1-\u03C9]'
-    return bool(re.search(pattern, text))
+    containsGreek = bool(re.search(pattern, text))
+    print("Text ",text," contains greek = ",containsGreek)
+    return containsGreek
 
 def ensure_translation_package(from_code: str, to_code: str):
     argostranslate.translate.load_installed_languages()
@@ -429,6 +431,7 @@ def predict(
 
     if (TRANSLATE):
         translated_prompt = translate_el_to_en(text)
+        print("\nTranslating ",text," to ",translated_prompt)
     else:
         translated_prompt = text
 
@@ -463,7 +466,9 @@ def predict(
             response = strip_stop_words(full_response, stop_words)
 
             if (TRANSLATE):
+               print("\nTranslating ",response," to ",end="")
                response = translate_en_to_el(response)
+               print(response)
             conversation.update_last_message(response)
             gradio_chatbot_output[-1][1] = response
 
