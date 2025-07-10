@@ -86,14 +86,20 @@ def ensure_translation_package(from_code: str, to_code: str):
     argostranslate.translate.load_installed_languages()
  
 
+#Do translation loading always and not on the fly
+ensure_translation_package(from_code, to_code)
+ensure_translation_package(to_code,from_code)
+argostranslate.translate.load_installed_languages()
+
+
 def _preserve_tags_and_translate(text: str, from_code: str, to_code: str) -> str:
     """
     Translate the entire text at once, but preserve tags like <image> by temporarily replacing them,
     then restoring after translation.
     """
 
-    ensure_translation_package(from_code, to_code)
-    argostranslate.translate.load_installed_languages()
+    #ensure_translation_package(from_code, to_code)
+    #argostranslate.translate.load_installed_languages()
 
     tag_pattern = re.compile(r"<[^>]+>")
 

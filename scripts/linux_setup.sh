@@ -53,6 +53,7 @@ python3 -m pip install joblib wheel
 python3 -m pip install flash-attn --no-build-isolation
 python3 -m pip install xformers gradio
 python3 -m pip install --upgrade gradio
+python3 -m pip install transformers==4.47.1 #Solve ImportError: cannot import name 'LlamaFlashAttention2' from 'transformers.models.llama.modeling_llama'
 
 ./setup_translator.sh
 #You can now run using :
