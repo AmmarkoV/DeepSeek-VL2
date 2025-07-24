@@ -34,15 +34,12 @@ docker build \
 # was --mount type=tmpfs,destination=/home/user/ram,tmpfs-mode=1777 \
 #--tmpfs /home/user/ram:rw,size=140g,mode=1777 \
 docker run -d \
-	--gpus all \
-	--shm-size 32G \
+	--gpus all \ 
     --cap-add=SYS_NICE \
-    --mount type=tmpfs,destination=/home/user/ram,tmpfs-mode=1777 \
 	-it \
 	--name $NAME-container \
 	-v $mount_pth:/home/user/workspace \
-    -v /storage:/storage \
-    -p 8083:8083
+    -p 8083:8083 \
 	$NAME
 
 
