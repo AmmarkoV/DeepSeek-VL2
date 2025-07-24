@@ -38,7 +38,8 @@ export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
 sudo nvidia-ctk runtime configure --runtime=docker
 
 
-sudo apt install docker.io 
+sudo apt install docker.io docker-buildx docker-compose-v2 docker-clean 
+
 sudo systemctl restart docker
 
 #Rootless mode
