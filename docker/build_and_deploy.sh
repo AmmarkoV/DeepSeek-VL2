@@ -22,9 +22,9 @@ export DOCKER_BUILDKIT=1
 # update tensorflow image
 docker pull tensorflow/tensorflow:latest-gpu
 
-# build and run tensorflow
-docker build \
+# build and run tensorflow 
     #--ssh default \
+docker build \
 	-t $NAME \
 	$dockerfile_pth \
 	--build-arg user_id=$UID
