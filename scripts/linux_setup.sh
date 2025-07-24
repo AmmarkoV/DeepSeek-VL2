@@ -75,7 +75,7 @@ echo "From now on you can run the web demo using: "
 DEMO_DIR=`pwd`
 echo "cd $DEMO_DIR"
 echo "source venv/bin/activate"
-echo "python3 server.py --model_name deepseek-ai/deepseek-vl2-tiny --port 8080"
+echo "python3 server.py --model_name deepseek-ai/deepseek-vl2-tiny --port 8083"
 
 
 exit 0
