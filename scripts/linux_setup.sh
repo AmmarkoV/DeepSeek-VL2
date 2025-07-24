@@ -72,6 +72,8 @@ python3 -m pip install transformers==4.47.1 #Solve ImportError: cannot import na
 #pip install -U --pre triton
 #pip install flash_attn
 #pip install tqdm
+#python3 -m pip install mdtex2html pypinyin tiktoken tqdm colorama Pygments markdown SentencePiece attrdict einops sentencepiece accelerate timm
+
 
 #python3 -m pip install --pre torch torchvision torchaudio flash-attn xformers transformers joblib wheel gradio --index-url https://download.pytorch.org/whl/nightly/cu128
 ##FLASH_ATTENTION_FORCE_BUILD=TRUE python3 -m pip install flash_attn -U --force-reinstall
