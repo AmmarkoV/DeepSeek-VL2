@@ -55,6 +55,11 @@ python3 -m pip install xformers gradio
 python3 -m pip install --upgrade gradio
 python3 -m pip install transformers==4.47.1 #Solve ImportError: cannot import name 'LlamaFlashAttention2' from 'transformers.models.llama.modeling_llama'
 
+
+#For 50XX Cards!
+#python3 -m pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+
+
 ./setup_translator.sh
 #You can now run using :
 #CUDA_VISIBLE_DEVICES=2 python3 web_demo.py --model_name "deepseek-ai/deepseek-vl2-tiny"  --port 8080
