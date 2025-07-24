@@ -57,31 +57,14 @@ python3 -m pip install transformers==4.47.1 #Solve ImportError: cannot import na
 
 
 #For 50XX Cards!
-
-#pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
-#python -c "import torch; print(torch.__version__); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0))"
-#pip install --upgrade xformers --no-deps --pre
-#pip install bitsandbytes 
-#pip install "accelerate >= 1.4.0" 
-#pip install "diffusers >= 0.32.2" 
-#pip install "transformers >= 4.49.0" 
-#pip install ninja 
-#pip install wheel 
-#pip install packaging 
-#pip install onnxruntime-gpu 
-#pip install -U --pre triton
-#pip install flash_attn
-#pip install tqdm
-#python3 -m pip install mdtex2html pypinyin tiktoken tqdm colorama Pygments markdown SentencePiece attrdict einops sentencepiece accelerate timm
-
-
-#python3 -m pip install --pre torch torchvision torchaudio flash-attn xformers transformers joblib wheel gradio --index-url https://download.pytorch.org/whl/nightly/cu128
-##FLASH_ATTENTION_FORCE_BUILD=TRUE python3 -m pip install flash_attn -U --force-reinstall
-##FLASH_ATTENTION_FORCE_BUILD=TRUE python3 -m pip install flash-attn==2.7.3 --no-build-isolation
-##git clone https://github.com/Dao-AILab/flash-attention.git
-##cd flash-attention
-##MAX_JOBS=4 python setup.py install
-##pip install -e .
+#Xformers from source
+#python3 -m pip install torch==2.7.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+#git clone https://github.com/facebookresearch/xformers.git
+#cd xformers
+#git submodule update --init --recursive
+#pip install -r requirements.txt
+#TORCH_CUDA_ARCH_LIST="8.9 9.0 12.0" python setup.py install
+#cd ..
 
 
 ./setup_translator.sh

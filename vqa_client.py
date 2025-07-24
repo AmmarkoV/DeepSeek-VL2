@@ -5,7 +5,9 @@ import numpy as np
 from gradio_client import Client, handle_file
 
 # Server configuration
-client = Client("http://139.91.185.16:8083")  # Change if needed
+#client = Client("http://139.91.185.16:8083")  # Change if needed
+client = Client("http://147.52.17.119:8083")  # Change if needed
+ 
 
 def run_vqa(image: np.ndarray, question: str, greek=False):
     # Save image to a temporary file
