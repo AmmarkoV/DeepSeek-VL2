@@ -13,7 +13,7 @@ else
 echo "Creating a virtual environment"
 #Simple dependency checker that will apt-get stuff if something is missing
 # sudo apt-get install python3-venv python3-pip
-SYSTEM_DEPENDENCIES="python3-venv python3-pip zip libhdf5-dev"
+SYSTEM_DEPENDENCIES="python3-venv python3-pip zip libhdf5-dev build-essential ninja-build"
 
 for REQUIRED_PKG in $SYSTEM_DEPENDENCIES
 do
