@@ -38,6 +38,7 @@ docker run -d \
 	-it \
 	--name $NAME-container \
 	-v $mount_pth:/home/user/workspace \
+	-v /usr/local/cuda/:/usr/local/cuda/ \
     -p 8083:8083 \
 	$NAME
 
