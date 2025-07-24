@@ -21,7 +21,8 @@ def speak(text, pipeline, voice):
 
 
 def main():
-    tts = KPipeline(lang_code='e')  # Greek TTS
+    ttsGreek = KPipeline(lang_code='e')  # Greek TTS
+    ttsEnglish = KPipeline(lang_code='a')  # Greek TTS
 
     cam = cv2.VideoCapture(0)
     if not cam.isOpened():
@@ -43,13 +44,13 @@ def main():
             question = "Τι βλέπεις;"
             answer = run_vqa(frame, question, greek=True)
             print(f"🗣️ Απάντηση: {answer}")
-            Thread(target=speak, args=(answer, tts,'ef_dora'), daemon=True).start()
+            Thread(target=speak, args=(answer, ttsGreek,'ef_dora'), daemon=True).start()
         if  key == ord('e'):
             # Greek question
             question = "What do you see?"
             answer = run_vqa(frame, question, greek=False)
             print(f"🗣️ Answer: {answer}")
-            Thread(target=speak, args=(answer, tts,'af_bella'), daemon=True).start()
+            Thread(target=speak, args=(answer, ttsEnglish,'af_bella'), daemon=True).start()
 
         # Overlay instruction text on the frame
         cv2.putText(
