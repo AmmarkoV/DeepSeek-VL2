@@ -50,14 +50,20 @@ python3 -m pip install -e .
 python3 -m pip install -e .[gradio]
 
 python3 -m pip install joblib wheel
-python3 -m pip install flash-attn --no-build-isolation
+FLASH_ATTENTION_FORCE_BUILD=TRUE python3 -m pip install flash-attn --no-build-isolation
 python3 -m pip install xformers gradio
 python3 -m pip install --upgrade gradio
 python3 -m pip install transformers==4.47.1 #Solve ImportError: cannot import name 'LlamaFlashAttention2' from 'transformers.models.llama.modeling_llama'
 
 
 #For 50XX Cards!
+#sudo apt-get install cuda
 #python3 -m pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+#FLASH_ATTENTION_FORCE_BUILD=TRUE python3 -m pip install flash_attn -U --force-reinstall
+##git clone https://github.com/Dao-AILab/flash-attention.git
+##cd flash-attention
+##MAX_JOBS=4 python setup.py install
+##pip install -e .
 
 
 ./setup_translator.sh
