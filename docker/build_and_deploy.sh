@@ -24,7 +24,7 @@ docker pull tensorflow/tensorflow:latest-gpu
 
 # build and run tensorflow
 docker build \
-    --ssh default \
+    #--ssh default \
 	-t $NAME \
 	$dockerfile_pth \
 	--build-arg user_id=$UID
