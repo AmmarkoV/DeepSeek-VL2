@@ -50,7 +50,7 @@ python3 -m pip install -e .
 python3 -m pip install -e .[gradio]
 
 python3 -m pip install joblib wheel
-FLASH_ATTENTION_FORCE_BUILD=TRUE python3 -m pip install flash-attn --no-build-isolation
+python3 -m pip install flash-attn --no-build-isolation
 python3 -m pip install xformers gradio
 python3 -m pip install --upgrade gradio
 python3 -m pip install transformers==4.47.1 #Solve ImportError: cannot import name 'LlamaFlashAttention2' from 'transformers.models.llama.modeling_llama'
