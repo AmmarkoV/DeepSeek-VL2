@@ -61,7 +61,7 @@ git clone https://github.com/facebookresearch/xformers.git
 cd xformers
 git submodule update --init --recursive
 python3 -m pip install -r requirements.txt
-TORCH_CUDA_ARCH_LIST="8.9 9.0 12.0" python3 setup.py install
+TORCH_CUDA_ARCH_LIST="8.9 9.0 12.0" MAX_JOBS=8 python3 setup.py install
 cd ..
 
 
