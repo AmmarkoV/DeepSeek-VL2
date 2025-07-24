@@ -26,6 +26,8 @@ sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-tool
 
 sudo apt-get update
 
+
+
 export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
   sudo apt-get install -y \
       nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
@@ -34,6 +36,9 @@ export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
       libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
 
 sudo nvidia-ctk runtime configure --runtime=docker
+
+
+sudo apt install docker.io 
 sudo systemctl restart docker
 
 #Rootless mode
