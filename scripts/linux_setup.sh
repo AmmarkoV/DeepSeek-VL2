@@ -60,6 +60,7 @@ python3 -m pip install transformers==4.47.1 #Solve ImportError: cannot import na
 #sudo apt-get install cuda
 #python3 -m pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
 #FLASH_ATTENTION_FORCE_BUILD=TRUE python3 -m pip install flash_attn -U --force-reinstall
+#FLASH_ATTENTION_FORCE_BUILD=TRUE python3 -m pip install flash-attn==2.7.3 --no-build-isolation
 ##git clone https://github.com/Dao-AILab/flash-attention.git
 ##cd flash-attention
 ##MAX_JOBS=4 python setup.py install
