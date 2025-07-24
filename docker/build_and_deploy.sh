@@ -34,8 +34,7 @@ docker build \
 # was --mount type=tmpfs,destination=/home/user/ram,tmpfs-mode=1777 \
 #--tmpfs /home/user/ram:rw,size=140g,mode=1777 \
 docker run -d \
-	--gpus all \ 
-    --cap-add=SYS_NICE \
+	--gpus all \
 	-it \
 	--name $NAME-container \
 	-v $mount_pth:/home/user/workspace \
