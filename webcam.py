@@ -7,22 +7,12 @@ from threading import Thread
 from kokoro import KPipeline
 from vqa_client import run_vqa  # now uses your gradio client logic
 
-#def speak(text, pipeline):
-#    for _, _, audio in pipeline(text, voice='ef_dora'):
-#        pass  # Autoplay
-
-
-#def speak(text, pipeline):
-#    print("🔊 Speaking...")
-#    for name, meta, audio in pipeline(text, voice='ef_dora'):
-#        print(f"Audio info: {meta}")
-
 import sounddevice as sd
 import numpy as np
 
 
-def speak(text, pipeline):
-    for i, (gs, ps, audio) in enumerate(pipeline(text, voice='ef_dora', speed=1, split_pattern=r'\n+')):
+def speak(text, pipeline, voice):
+    for i, (gs, ps, audio) in enumerate(pipeline(text, voice=voice, speed=1, split_pattern=r'\n+')):
         print(f"🔊 Speaking sentence {i+1}: {gs}")
         if isinstance(audio, (list, tuple)):  # Not expected, but just in case
             audio = np.array(audio, dtype=np.float32)
@@ -46,19 +36,28 @@ def main():
             print("⚠️ Δεν μπορώ να διαβάσω το πλαίσιο")
             break
 
+   
+        key = cv2.waitKey(1) & 0xFF 
+        if  key == ord('g'):
+            # Greek question
+            question = "Τι βλέπεις;"
+            answer = run_vqa(frame, question, greek=True)
+            print(f"🗣️ Απάντηση: {answer}")
+            Thread(target=speak, args=(answer, tts,'ef_dora'), daemon=True).start()
+        if  key == ord('e'):
+            # Greek question
+            question = "What do you see?"
+            answer = run_vqa(frame, question, greek=False)
+            print(f"🗣️ Answer: {answer}")
+            Thread(target=speak, args=(answer, tts,'af_bella'), daemon=True).start()
+
+        # Overlay instruction text on the frame
+        cv2.putText(
+            frame, "Press 'G/E' to describe (in Greek or English), 'Q' to quit",
+            (10, 30),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0, 255, 0),2, cv2.LINE_AA )
         cv2.imshow('Webcam', frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-        # Greek question
-        question = "Τι βλέπεις;"
-        answer = run_vqa(frame, question, greek=True)
-
-        print(f"🗣️ Απάντηση: {answer}")
-        Thread(target=speak, args=(answer, tts), daemon=True).start()
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if key  == ord('q'):
             break
 
     cam.release()
