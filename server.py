@@ -33,6 +33,10 @@ import torch
  
 menuT = dict()
 #----------------------------------------------------------------------
+menuT["Files"]="Αρχεία"
+menuT["Chatbot"]="Συνομιλητής Τεχνητής Νοημοσύνης"
+
+menuT["Gallery"]="Εικόνες"
 menuT["Success"]="Επιτυχία"
 menuT["Enter text"]="Είσοδος κειμένου"
 menuT["Send"]="Αποστολή"
@@ -55,6 +59,7 @@ menuT["Is the worker wearing gloves?"]="Φοράνε οι εργαζόμενοι
 menuT["Is the conveyor line full?"]="Είναι γεμάτη η γραμμή παραγωγής;"
 menuT["Is there a person overseeing the work station ?"]="Υπάρχει εργαζόμενος που επιβλέπει την θέση παραγωγής;"
 
+description_top = """Special Tokens: `<image>`,     Visual Grounding: `<|ref|>{query}<|/ref|>`,    Grounding Conversation: `<|grounding|>{question}`"""
 
 
 def t(inputString):
@@ -71,7 +76,7 @@ import re
 
 
 from_code = "en"
-to_code = "el"
+to_code   = "el"
 
 # Download and install Argos Translate package
 argostranslate.package.update_package_index()
@@ -162,7 +167,6 @@ def translate_el_to_en(prompt: str) -> str:
     return _preserve_tags_and_translate(prompt, "el", "en")
 
 
-
 from deepseek_vl2.serve.app_modules.gradio_utils import (
     cancel_outputing,
     delete_last_conversation,
@@ -175,9 +179,11 @@ from deepseek_vl2.serve.app_modules.presets import (
     CONCURRENT_COUNT,
     MAX_EVENTS,
     description,
-    description_top,
     title
 )
+
+#description_top,
+
 from deepseek_vl2.serve.app_modules.utils import (
     configure_logger,
     is_variable_assigned,
@@ -192,15 +198,15 @@ from deepseek_vl2.serve.inference import (
     deepseek_generate,
     load_model,
 )
+
 from deepseek_vl2.models.conversation import SeparatorStyle
 
 logger = configure_logger()
 
 MODELS = [
-    "DeepSeek-VL2-tiny",
-    "DeepSeek-VL2-small",
-    "DeepSeek-VL2",
-
+#    "DeepSeek-VL2-tiny",
+#    "DeepSeek-VL2-small",
+#    "DeepSeek-VL2",
     "deepseek-ai/deepseek-vl2-tiny",
     "deepseek-ai/deepseek-vl2-small",
     "deepseek-ai/deepseek-vl2",
@@ -213,25 +219,25 @@ examples_list = [
     # visual grounding - 1
     [
         ["examples/sample01.jpg"],
-        "<|grounding|>%s" % (t("Are the workers wearing protective gloves and protective helmets?")),
+        "<|grounding|> %s" % (t("Are the workers wearing protective gloves and protective helmets?")),
     ],
 
     # visual grounding - 2
     [
         ["examples/sample02.jpg"],
-        "<|grounding|>%s" % (t("Is the worker wearing gloves?")),
+        "<|grounding|> %s" % (t("Is the worker wearing gloves?")),
     ],
 
     # visual grounding - 3
     [
         ["examples/sample03.jpg"],
-        "<|grounding|>%s" % (t("Is the conveyor line full?")),
+        "<|grounding|> %s" % (t("Is the conveyor line full?")),
     ],
 
     # grounding conversation
     [
         ["examples/sample05.jpg"],
-        "<|grounding|>%s" % (t("Is there a person overseeing the work station ?")),
+        "<|grounding|> %s" % (t("Is there a person overseeing the work station ?")),
     ]
 ]
 
@@ -594,8 +600,8 @@ def build_demo(args):
         fetch_model(args.model_name)
 
     #CSS
-    with open("deepseek_vl2/serve/assets/custom.css", "r", encoding="utf-8") as f:
-        customCSS = f.read()
+    #with open("deepseek_vl2/serve/assets/custom.css", "r", encoding="utf-8") as f:
+    #    customCSS = f.read()
 
     with gr.Blocks(theme=gr.themes.Soft()) as demo:
         history = gr.State([])
@@ -615,6 +621,7 @@ def build_demo(args):
                         show_share_button=True,
                         bubble_full_width=False,
                         height=600,
+                        label=t("Chatbot")
                     )
                 with gr.Row():
                     with gr.Column(scale=4):
@@ -635,8 +642,12 @@ def build_demo(args):
                     delLastBtn = gr.Button(t("Remove Last Turn"))
 
             with gr.Column():
-                upload_images = gr.Files(file_types=["image"], show_label=True)
-                gallery = gr.Gallery(columns=[3], height="200px", show_label=True)
+                upload_images = gr.Files(file_types=["image"], show_label=True, label=t("Files"))
+
+
+
+
+                gallery = gr.Gallery(columns=[3], height="200px", show_label=True, label=t("Gallery"))
 
                 upload_images.change(preview_images, inputs=upload_images, outputs=gallery)
 
@@ -692,6 +703,7 @@ def build_demo(args):
 
                     # show images, but not visible
                     show_images = gr.HTML(visible=False)
+                   
                     # show_images = gr.Image(type="pil", interactive=False, visible=False)
 
         def format_examples(examples_list):
@@ -788,7 +800,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if (args.greek):
-        print("Menu set to Greek!") 
+        print("Menu set to Greek!")
+        description_top = """Πριν κάθε ερώτηση, πατήστε Νέα Συνομιλία.    Ειδικές λέξεις κλειδιά: `<image>`,     Οπτική θεμελίωση: `<|ref|>{ερώτηση}<|/ref|>`,    Συνομιλία με θεμελίωση στην εικόνα: `<|grounding|>{ερώτηση}`"""
         GREEK_MENU = True
 
     demo = build_demo(args)
