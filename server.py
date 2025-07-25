@@ -774,6 +774,7 @@ if __name__ == "__main__":
     parser.add_argument("--ip", type=str, default="0.0.0.0", help="ip address")
     parser.add_argument("--port", type=int, default=8080, help="port number")
     parser.add_argument("--public", type=bool, default=False, help="share link")
+    parser.add_argument("--greek", type=bool, default=False, help="language")
     parser.add_argument("--root_path", type=str, default="", help="root path")
     parser.add_argument("--lazy_load", action='store_true')
     parser.add_argument("--chunk_size", type=int, default=-1,
@@ -782,8 +783,15 @@ if __name__ == "__main__":
                              "Otherwise, default value is -1, which means we do not use incremental_prefilling.")
     args = parser.parse_args()
 
+    if (args.greek):
+        print("Menu set to Greek!")
+        global GREEK_MENU
+        GREEK_MENU = True
+
     demo = build_demo(args)
     demo.title = t("VLM - Platform")
+
+
 
     reload_javascript()
     demo.queue(#concurrency_count=CONCURRENT_COUNT, #<- for some reason this emmits an error!
