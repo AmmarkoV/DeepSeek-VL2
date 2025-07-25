@@ -52,17 +52,18 @@ python3 -m pip install -e .[gradio]
 python3 -m pip install joblib wheel
 MAX_JOBS=8 python3 -m pip install flash-attn --no-build-isolation
 MAX_JOBS=8 python3 -m pip install xformers gradio
-python3 -m pip install --upgrade gradio 
+python3 -m pip install --upgrade gradio
+python3 -m pip install transformers==4.47.1
 
 #For 50XX Cards!
 #Xformers from source
-python3 -m pip install torch==2.7.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+python3 -m pip install torch==2.7.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 --upgrade --force-reinstall
 git clone https://github.com/facebookresearch/xformers.git
 cd xformers
 git submodule update --init --recursive
 MAX_JOBS=8 python3 -m pip install -r requirements.txt
-python3 -m pip install ninja
-TORCH_CUDA_ARCH_LIST="8.9 9.0 12.0" MAX_JOBS=8 python3 setup.py install
+python3 -m pip install setuptools wheel ninja
+TORCH_CUDA_ARCH_LIST="12.0" MAX_JOBS=8 python3 setup.py install
 cd ..
 
 
