@@ -57,7 +57,7 @@ python3 -m pip install transformers==4.47.1
 
 #For 50XX Cards!
 #Xformers from source
-python3 -m pip install torch==2.7.1 torchvision torchaudio flash-attn --index-url https://download.pytorch.org/whl/cu128 --upgrade --force-reinstall
+python3 -m pip install torch==2.7.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 --upgrade --force-reinstall
 git clone https://github.com/facebookresearch/xformers.git
 cd xformers
 git submodule update --init --recursive
