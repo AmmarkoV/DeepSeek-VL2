@@ -54,11 +54,10 @@ menuT["VLM - Platform"]="Πλατφόρμα Μεγάλου Γλωσσικού-Λ
 
 
 def t(inputString):
-if (GREEK_MENU):
+ if (GREEK_MENU):
   global menuT
   return menuT[inputString]
-
-return inputString
+ return inputString
 
 
 import argostranslate.package
