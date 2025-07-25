@@ -59,7 +59,14 @@ python3 -m pip install transformers==4.47.1
 #Xformers from source
 python3 -m pip install --pre torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 --upgrade --force-reinstall
 #python3 -m pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu128 --force-reinstall --no-deps
+
+
+if [ -d xformers/ ]
+then
+print("XFormers already exist")
+else
 git clone https://github.com/facebookresearch/xformers.git
+fi
 cd xformers
 git submodule update --init --recursive
 MAX_JOBS=8 python3 -m pip install -r requirements.txt
