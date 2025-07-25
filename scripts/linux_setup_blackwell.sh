@@ -49,7 +49,7 @@ python3 -m pip install --upgrade pip
 python3 -m pip install -e .
 python3 -m pip install -e .[gradio]
 
-python3 -m pip install joblib wheel setuptools ninja
+python3 -m pip install joblib wheel setuptools ninja==1.11.1.3
 #MAX_JOBS=8 python3 -m pip install flash-attn==2.7.3 --no-build-isolation
 #MAX_JOBS=8 python3 -m pip install xformers gradio
 python3 -m pip install --upgrade gradio
@@ -70,6 +70,7 @@ else
 git clone https://github.com/Dao-AILab/flash-attention
 fi
 cd flash-attention/hopper
+git checkout v2.8.0
 git submodule update --init --recursive
 TORCH_CUDA_ARCH_LIST="12.0" MAX_JOBS=4 python3 setup.py install
 cd ../..
