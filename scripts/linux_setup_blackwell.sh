@@ -49,16 +49,30 @@ python3 -m pip install --upgrade pip
 python3 -m pip install -e .
 python3 -m pip install -e .[gradio]
 
-python3 -m pip install joblib wheel
-MAX_JOBS=8 python3 -m pip install flash-attn==2.7.3 --no-build-isolation
-MAX_JOBS=8 python3 -m pip install xformers gradio
+python3 -m pip install joblib wheel setuptools ninja
+#MAX_JOBS=8 python3 -m pip install flash-attn==2.7.3 --no-build-isolation
+#MAX_JOBS=8 python3 -m pip install xformers gradio
 python3 -m pip install --upgrade gradio
 python3 -m pip install transformers==4.47.1
 
 #For 50XX Cards!
 #Xformers from source
-python3 -m pip install --pre torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 --upgrade --force-reinstall
-#python3 -m pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu128 --force-reinstall --no-deps
+python3 -m pip install --pre torch==2.7.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 --upgrade --force-reinstall
+
+#python3 -mpip uninstall flash-attn
+#MAX_JOBS=8 python3 -m pip install  --no-build-isolation  flash-attn  -U --force-reinstall
+
+
+if [ -d flash-attention/ ]
+then
+print("XFormers already exist")
+else
+git clone https://github.com/Dao-AILab/flash-attention
+fi
+cd flash-attention
+git submodule update --init --recursive
+TORCH_CUDA_ARCH_LIST="12.0" MAX_JOBS=4 python3 setup.py install
+cd ..
 
 
 if [ -d xformers/ ]
@@ -70,7 +84,6 @@ fi
 cd xformers
 git submodule update --init --recursive
 MAX_JOBS=8 python3 -m pip install -r requirements.txt
-python3 -m pip install setuptools wheel ninja
 TORCH_CUDA_ARCH_LIST="12.0" MAX_JOBS=8 python3 setup.py install
 cd ..
 
