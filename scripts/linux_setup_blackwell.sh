@@ -36,6 +36,9 @@ python3 -m venv venv
 source venv/bin/activate
 fi 
 
+#Setup translator first
+./setup_translator.sh
+
 
 #git clone https://github.com/deepseek-ai/DeepSeek-VL2
 #cd DeepSeek-VL2
@@ -76,20 +79,20 @@ TORCH_CUDA_ARCH_LIST="12.0" MAX_JOBS=1 python3 setup.py install
 cd ../..
 
 
-if [ -d xformers/ ]
-then
-print("XFormers already exist")
-else
-git clone https://github.com/facebookresearch/xformers.git
-fi
-cd xformers
-git submodule update --init --recursive
-MAX_JOBS=8 python3 -m pip install -r requirements.txt
-TORCH_CUDA_ARCH_LIST="12.0" MAX_JOBS=8 python3 setup.py install
-cd ..
+#if [ -d xformers/ ]
+#then
+#print("XFormers already exist")
+#else
+#git clone https://github.com/facebookresearch/xformers.git
+#fi
+#cd xformers
+#git submodule update --init --recursive
+#MAX_JOBS=8 python3 -m pip install -r requirements.txt
+#TORCH_CUDA_ARCH_LIST="12.0" MAX_JOBS=8 python3 setup.py install
+#cd ..
 
+MAX_JOBS=4 python3 -m pip install --no-build-isolation --pre -v -U git+https://github.com/facebookresearch/xformers.git@fde5a2fb46e3f83d73e2974a4d12caf526a4203e
 
-./setup_translator.sh
 #You can now run using :
 #CUDA_VISIBLE_DEVICES=2 python3 web_demo.py --model_name "deepseek-ai/deepseek-vl2-tiny"  --port 8080
 
