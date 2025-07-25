@@ -642,7 +642,8 @@ def build_demo(args):
                     delLastBtn = gr.Button(t("Remove Last Turn"))
 
             with gr.Column():
-                upload_images = gr.Files(file_types=["image"], show_label=True, label=t("Files"))
+                upload_images = gr.Files(file_types=["image"], show_label=True, label=t("Files")) 
+                #upload_images = gr.Image(type="pil", label="Εικόνα",  placeholder="Test")
 
 
 
