@@ -54,6 +54,7 @@ menuT["VLM - Platform"]="Πλατφόρμα Μεγάλου Γλωσσικού-Λ
 
 
 def t(inputString):
+ global GREEK_MENU
  if (GREEK_MENU):
   global menuT
   return menuT[inputString]
