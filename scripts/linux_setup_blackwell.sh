@@ -50,8 +50,8 @@ python3 -m pip install -e .
 python3 -m pip install -e .[gradio]
 
 python3 -m pip install joblib wheel
-python3 -m pip install flash-attn --no-build-isolation
-python3 -m pip install xformers gradio
+MAX_JOBS=8 python3 -m pip install flash-attn --no-build-isolation
+MAX_JOBS=8 python3 -m pip install xformers gradio
 python3 -m pip install --upgrade gradio 
 
 #For 50XX Cards!
@@ -60,7 +60,7 @@ python3 -m pip install torch==2.7.1 torchvision torchaudio --index-url https://d
 git clone https://github.com/facebookresearch/xformers.git
 cd xformers
 git submodule update --init --recursive
-python3 -m pip install -r requirements.txt
+MAX_JOBS=8 python3 -m pip install -r requirements.txt
 TORCH_CUDA_ARCH_LIST="8.9 9.0 12.0" MAX_JOBS=8 python3 setup.py install
 cd ..
 
