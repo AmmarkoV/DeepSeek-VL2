@@ -20,7 +20,7 @@
 # -*- coding:utf-8 -*-
 from argparse import ArgumentParser
 
-GREEK_MENU=False
+GREEK_MENU=True
 TRANSLATE=True
 
 import io
@@ -32,6 +32,7 @@ import gradio as gr
 import torch
  
 menuT = dict()
+#----------------------------------------------------------------------
 menuT["Success"]="Επιτυχία"
 menuT["Enter text"]="Είσοδος κειμένου"
 menuT["Send"]="Αποστολή"
@@ -48,8 +49,11 @@ menuT["Max Generation Tokens"]="Μέγιστος αριθμός λέξεων"
 menuT["Max History Tokens"]="Μέγιστη ιστορία λέξεων"
 menuT["Select Models"]="Επιλογή Μοντέλων"
 menuT["VLM - Platform"]="Πλατφόρμα Μεγάλου Γλωσσικού-Λεκτικού Μοντέλου"
-
-
+#----------------------------------------------------------------------
+menuT["Are the workers wearing protective gloves and protective helmets?"]="Φορούν οι εργαζόμενοι προστατευτικά γάντια και κράνη;"
+menuT["Is the worker wearing gloves?"]="Φοράνε οι εργαζόμενοι προστατευτικά γάντια;"
+menuT["Is the conveyor line full?"]="Είναι γεμάτη η γραμμή παραγωγής;"
+menuT["Is there a person overseeing the work station ?"]="Υπάρχει εργαζόμενος που επιβλέπει την θέση παραγωγής;"
 
 
 
@@ -209,25 +213,25 @@ examples_list = [
     # visual grounding - 1
     [
         ["examples/sample01.jpg"],
-        "<|grounding|>Are the workers wearing protective gloves and protective helmets?",
+        "<|grounding|>%s" % (t("Are the workers wearing protective gloves and protective helmets?")),
     ],
 
     # visual grounding - 2
     [
         ["examples/sample02.jpg"],
-        "<|grounding|>Is the worker wearing gloves?",
+        "<|grounding|>%s" % (t("Is the worker wearing gloves?")),
     ],
 
     # visual grounding - 3
     [
         ["examples/sample03.jpg"],
-        "<|grounding|>Is the conveyor line full?",
+        "<|grounding|>%s" % (t("Is the conveyor line full?")),
     ],
 
     # grounding conversation
     [
         ["examples/sample05.jpg"],
-        "<|grounding|> Is there a person overseeing the work station ?",
+        "<|grounding|>%s" % (t("Is there a person overseeing the work station ?")),
     ]
 ]
 
@@ -784,8 +788,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if (args.greek):
-        print("Menu set to Greek!")
-        global GREEK_MENU
+        print("Menu set to Greek!") 
         GREEK_MENU = True
 
     demo = build_demo(args)
