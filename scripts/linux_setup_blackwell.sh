@@ -69,10 +69,10 @@ print("XFormers already exist")
 else
 git clone https://github.com/Dao-AILab/flash-attention
 fi
-cd flash-attention
+cd flash-attention/hopper
 git submodule update --init --recursive
 TORCH_CUDA_ARCH_LIST="12.0" MAX_JOBS=4 python3 setup.py install
-cd ..
+cd ../..
 
 
 if [ -d xformers/ ]
