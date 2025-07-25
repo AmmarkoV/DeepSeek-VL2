@@ -72,7 +72,7 @@ fi
 cd flash-attention/hopper
 git checkout v2.8.0
 git submodule update --init --recursive
-TORCH_CUDA_ARCH_LIST="12.0" MAX_JOBS=4 python3 setup.py install
+TORCH_CUDA_ARCH_LIST="12.0" MAX_JOBS=1 python3 setup.py install
 cd ../..
 
 

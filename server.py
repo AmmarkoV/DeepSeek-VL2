@@ -20,6 +20,7 @@
 # -*- coding:utf-8 -*-
 from argparse import ArgumentParser
 
+GREEK_MENU=False
 TRANSLATE=True
 
 import io
@@ -29,6 +30,35 @@ from PIL import Image
 
 import gradio as gr
 import torch
+ 
+menuT = dict()
+menuT["Success"]="Επιτυχία"
+menuT["Enter text"]="Είσοδος κειμένου"
+menuT["Send"]="Αποστολή"
+menuT["Stop"]="Τέλος"
+menuT["New Conversation"]="Νέα Συνομιλία"
+menuT["Regenerate"]="Επανερώτηση"
+menuT["Remove Last Turn"]="Διαγραφή της τελευταίας σειράς"
+menuT["Parameter Setting"]="Ρύθμιση Παραμέτρων"
+menuT["Select Model"]="Επιλογή Μοντέλου"
+menuT["Top-p"]="Πιθανότητα"
+menuT["Temperature"]="Θερμοκρασία"
+menuT["Repetition penalty"]="Ποινή επανάληψεων"
+menuT["Max Generation Tokens"]="Μέγιστος αριθμός λέξεων"
+menuT["Max History Tokens"]="Μέγιστη ιστορία λέξεων"
+menuT["Select Models"]="Επιλογή Μοντέλων"
+menuT["VLM - Platform"]="Πλατφόρμα Μεγάλου Γλωσσικού-Λεκτικού Μοντέλου"
+
+
+
+
+
+def t(inputString):
+if (GREEK_MENU):
+  global menuT
+  return menuT[inputString]
+
+return inputString
 
 
 import argostranslate.package
@@ -179,7 +209,7 @@ examples_list = [
     # visual grounding - 1
     [
         ["examples/sample01.jpg"],
-        "<|grounding|>Are the workers wearing protective  gloves and protective helmets?",
+        "<|grounding|>Are the workers wearing protective gloves and protective helmets?",
     ],
 
     # visual grounding - 2
@@ -570,7 +600,7 @@ def build_demo(args):
 
         with gr.Row():
             gr.HTML(title)
-            status_display = gr.Markdown("Success", elem_id="status_display")
+            status_display = gr.Markdown(t("Success"), elem_id="status_display")
         gr.Markdown(description_top)
 
         with gr.Row(equal_height=True):
@@ -585,20 +615,20 @@ def build_demo(args):
                 with gr.Row():
                     with gr.Column(scale=4):
                         text_box = gr.Textbox(
-                            show_label=False, placeholder="Enter text", container=False
+                            show_label=False, placeholder=t("Enter text"), container=False
                         )
                     with gr.Column(
                         min_width=70,
                     ):
-                        submitBtn = gr.Button("Send")
+                        submitBtn = gr.Button(t("Send"))
                     with gr.Column(
                         min_width=70,
                     ):
-                        cancelBtn = gr.Button("Stop")
+                        cancelBtn = gr.Button(t("Stop"))
                 with gr.Row():
-                    emptyBtn   = gr.Button("? New Conversation")
-                    retryBtn   = gr.Button("? Regenerate")
-                    delLastBtn = gr.Button("?? Remove Last Turn")
+                    emptyBtn   = gr.Button(t("New Conversation"))
+                    retryBtn   = gr.Button(t("Regenerate"))
+                    delLastBtn = gr.Button(t("Remove Last Turn"))
 
             with gr.Column():
                 upload_images = gr.Files(file_types=["image"], show_label=True)
@@ -606,14 +636,14 @@ def build_demo(args):
 
                 upload_images.change(preview_images, inputs=upload_images, outputs=gallery)
 
-                with gr.Tab(label="Parameter Setting") as parameter_row:
+                with gr.Tab(label=t("Parameter Setting")) as parameter_row:
                     top_p = gr.Slider(
                         minimum=-0,
                         maximum=1.0,
                         value=0.9,
                         step=0.05,
                         interactive=True,
-                        label="Top-p",
+                        label=t("Top-p"),
                     )
                     temperature = gr.Slider(
                         minimum=0,
@@ -621,7 +651,7 @@ def build_demo(args):
                         value=0.1,
                         step=0.1,
                         interactive=True,
-                        label="Temperature",
+                        label=t("Temperature"),
                     )
                     repetition_penalty = gr.Slider(
                         minimum=0.0,
@@ -629,7 +659,7 @@ def build_demo(args):
                         value=1.1,
                         step=0.1,
                         interactive=True,
-                        label="Repetition penalty",
+                        label=t("Repetition penalty"),
                     )
                     max_length_tokens = gr.Slider(
                         minimum=0,
@@ -637,7 +667,7 @@ def build_demo(args):
                         value=2048,
                         step=8,
                         interactive=True,
-                        label="Max Generation Tokens",
+                        label=t("Max Generation Tokens"),
                     )
                     max_context_length_tokens = gr.Slider(
                         minimum=0,
@@ -645,10 +675,10 @@ def build_demo(args):
                         value=4096,
                         step=128,
                         interactive=True,
-                        label="Max History Tokens",
+                        label=t("Max History Tokens"),
                     )
                     model_select_dropdown = gr.Dropdown(
-                        label="Select Models",
+                        label=t("Select Model"),
                         choices=[args.model_name],
                         multiselect=False,
                         value=args.model_name,
@@ -753,7 +783,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     demo = build_demo(args)
-    demo.title = "VLM - Platform"
+    demo.title = t("VLM - Platform")
 
     reload_javascript()
     demo.queue(#concurrency_count=CONCURRENT_COUNT, #<- for some reason this emmits an error!
