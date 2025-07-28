@@ -32,19 +32,10 @@ if (file_exists("greek")):
 
 TRANSLATE=True
 
-import io
-import sys
-import base64
-from PIL import Image
-
-import gradio as gr
-import torch
- 
 menuT = dict()
 #----------------------------------------------------------------------
 menuT["Files"]="Αρχεία"
 menuT["Chatbot"]="Συνομιλητής Τεχνητής Νοημοσύνης"
-
 menuT["Gallery"]="Εικόνες"
 menuT["Success"]="Επιτυχία"
 menuT["Enter text"]="Είσοδος κειμένου"
@@ -68,8 +59,6 @@ menuT["Is the worker wearing gloves?"]="Φοράνε οι εργαζόμενοι
 menuT["Is the conveyor line full?"]="Είναι γεμάτη η γραμμή παραγωγής;"
 menuT["Is there a person overseeing the work station ?"]="Υπάρχει εργαζόμενος που επιβλέπει την θέση παραγωγής;"
 
-description_top = """Special Tokens: `<image>`,     Visual Grounding: `<|ref|>{query}<|/ref|>`,    Grounding Conversation: `<|grounding|>{question}`"""
-
 
 def t(inputString):
  global GREEK_MENU
@@ -77,6 +66,20 @@ def t(inputString):
   global menuT
   return menuT[inputString]
  return inputString
+
+
+import io
+import sys
+import base64
+from PIL import Image
+
+import gradio as gr
+import torch
+
+
+description_top = """Special Tokens: `<image>`,     Visual Grounding: `<|ref|>{query}<|/ref|>`,    Grounding Conversation: `<|grounding|>{question}`"""
+
+
 
 
 import argostranslate.package
