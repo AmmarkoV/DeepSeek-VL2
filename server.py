@@ -20,7 +20,16 @@
 # -*- coding:utf-8 -*-
 from argparse import ArgumentParser
 
-GREEK_MENU=True
+import os
+
+def file_exists(path):
+    return os.path.exists(path)
+
+#If a file greek exists, trigger translation
+GREEK_MENU=False
+if (file_exists("greek"):
+  GREEK_MENU=True
+
 TRANSLATE=True
 
 import io
@@ -790,8 +799,7 @@ if __name__ == "__main__":
     parser.add_argument("--local_path", type=str, default="", help="huggingface ckpt, optional")
     parser.add_argument("--ip", type=str, default="0.0.0.0", help="ip address")
     parser.add_argument("--port", type=int, default=8080, help="port number")
-    parser.add_argument("--public", type=bool, default=False, help="share link")
-    parser.add_argument("--greek", type=bool, default=False, help="language")
+    parser.add_argument("--public", type=bool, default=False, help="share link") 
     parser.add_argument("--root_path", type=str, default="", help="root path")
     parser.add_argument("--lazy_load", action='store_true')
     parser.add_argument("--chunk_size", type=int, default=-1,
@@ -800,10 +808,10 @@ if __name__ == "__main__":
                              "Otherwise, default value is -1, which means we do not use incremental_prefilling.")
     args = parser.parse_args()
 
-    if (args.greek):
+    if (GREEK_MENU):
         print("Menu set to Greek!")
         description_top = """Πριν κάθε ερώτηση, πατήστε Νέα Συνομιλία.    Ειδικές λέξεις κλειδιά: `<image>`,     Οπτική θεμελίωση: `<|ref|>{ερώτηση}<|/ref|>`,    Συνομιλία με θεμελίωση στην εικόνα: `<|grounding|>{ερώτηση}`"""
-        GREEK_MENU = True
+ 
 
     demo = build_demo(args)
     demo.title = t("VLM - Platform")
