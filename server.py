@@ -27,7 +27,7 @@ def file_exists(path):
 
 #If a file greek exists, trigger translation
 GREEK_MENU=False
-if (file_exists("greek"):
+if (file_exists("greek")):
   GREEK_MENU=True
 
 TRANSLATE=True
