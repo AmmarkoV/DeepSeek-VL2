@@ -21,7 +21,6 @@
 from argparse import ArgumentParser
 
 import os
-
 def file_exists(path):
     return os.path.exists(path)
 
@@ -755,11 +754,16 @@ def build_demo(args):
             show_progress=True,
         )
 
+        
+        show_each_predicted_token_progress=True
+        if (GREEK_MENU):
+             show_each_predicted_token_progress=False #When using greek stop showing progress to speed up inference
+
         predict_args = dict(
             fn=predict,
             inputs=input_widgets,
             outputs=output_widgets,
-            show_progress=True,
+            show_progress=show_each_predicted_token_progress,
         )
 
         retry_args = dict(
