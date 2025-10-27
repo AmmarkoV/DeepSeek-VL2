@@ -1,4 +1,6 @@
 #pip install -U transformers accelerate bitsandbytes
+# OR 
+# python3 -m venv venv && source venv/bin/activate && python3 -m pip install -r requirements_llm.txt
 
 import gradio as gr
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
