@@ -19,6 +19,7 @@
 
 # -*- coding:utf-8 -*-
 from argparse import ArgumentParser
+args = None
 
 import os
 def file_exists(path):
@@ -462,6 +463,15 @@ def predict(
         if text == "":
             yield chatbot, history, "Empty context."
             return
+
+        # Enforce input text length limit
+        global args
+        if hasattr(args, "limit") and len(text) > args.limit:
+            msg = f"Input too long ({len(text)} characters). The limit is {args.limit}."
+            print(msg)
+            yield chatbot, history, msg
+            return
+
     except KeyError:
         yield [[text, "No Model Found"]], [], "No Model Found"
         return
@@ -810,9 +820,12 @@ if __name__ == "__main__":
     parser.add_argument("--root_path", type=str, default="", help="root path")
     parser.add_argument("--lazy_load", action='store_true')
     parser.add_argument("--chunk_size", type=int, default=-1,
-                        help="chunk size for the model for prefiiling. "
+                        help="chunk size for the model for prefiling. "
                              "When using 40G gpu for vl2-small, set a chunk_size for incremental_prefilling."
                              "Otherwise, default value is -1, which means we do not use incremental_prefilling.")
+    parser.add_argument("--limit", type=int, default=4096, help="Maximum number of input text characters allowed per query.")
+
+    global args
     args = parser.parse_args()
 
     if (GREEK_MENU):
