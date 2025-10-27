@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# This script builds and runs a docker image for local use.
+
+#Although I dislike the use of docker for a myriad of reasons, due needing it to deploy on a particular machine
+#I am adding a docker container builder for the repository to automate the process
+
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR"
+cd ..
+REPOSITORY=`pwd`
+
+cd "$DIR"
+
+NAME="deepseekvl2"
+dockerfile_pth="$DIR"
+mount_pth="$REPOSITORY"
+
+export DOCKER_BUILDKIT=1
+
+
+# update tensorflow image
+docker pull tensorflow/tensorflow:latest-gpu
+
+# build and run tensorflow 
+    #--ssh default \
+docker build \
+	-t $NAME \
+	$dockerfile_pth \
+	--build-arg user_id=$UID
+
+# --cpus 32 \
+#--mount type=tmpfs,destination=/home/user/ram,tmpfs-mode=1777,size=140G,mpol=bind,huge=always \
+# was --mount type=tmpfs,destination=/home/user/ram,tmpfs-mode=1777 \
+#--tmpfs /home/user/ram:rw,size=140g,mode=1777 \
+docker run -d \
+	--gpus all \
+	-it \
+	--name $NAME-container \
+	-v $mount_pth:/home/user/workspace \
+	-v /usr/local/cuda/:/usr/local/cuda/ \
+    -p 8083:8083 \
+	$NAME
+
+
+docker ps -a
+
+OUR_DOCKER_ID=`docker ps -a | grep $NAME | cut -f1 -d' '`
+echo "Our docker ID is : $OUR_DOCKER_ID"
+
+echo "To monitor resource-consumption use: docker stats $NAME-container"
+echo "Attaching it using : docker attach $OUD_DOCKER_ID"
+docker attach $OUR_DOCKER_ID
+
+
+
+exit 0

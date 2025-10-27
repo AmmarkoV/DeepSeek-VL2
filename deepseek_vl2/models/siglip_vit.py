@@ -12,9 +12,12 @@ from timm.layers import (
     AttentionPoolLatent, PatchDropout, resample_abs_pos_embed, LayerType
 )
 from timm.models._manipulate import named_apply, checkpoint_seq, adapt_input_conv
-from flash_attn import flash_attn_qkvpacked_func
-from xformers.ops import memory_efficient_attention
+from transformers.modeling_utils import is_flash_attn_2_available
 from functools import partial
+
+
+if is_flash_attn_2_available():
+    from flash_attn import flash_attn_qkvpacked_func
 
 
 def _no_grad_trunc_normal_(tensor, mean, std, a, b):
@@ -130,12 +133,14 @@ class Attention(nn.Module):
         self.proj_drop = nn.Dropout(proj_drop) if proj_drop > 0. else nn.Identity()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        from xformers.ops import memory_efficient_attention
+
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, self.head_dim)
 
         if not self.qk_norm:
-            if self.head_dim % 32 == 0:
-                # flashattn的head_dim必须是32的倍数，SigLIP-SO400M无法使用flashattn
+            if self.head_dim % 32 == 0 and is_flash_attn_2_available():
+                # flashattn must have head_dim as a multiple of 32
                 x = flash_attn_qkvpacked_func(qkv, dropout_p=self.attn_drop.p if self.training else 0.,
                                               deterministic=self.deterministic)
             else:

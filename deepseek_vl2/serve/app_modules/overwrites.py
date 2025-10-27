@@ -68,6 +68,7 @@ with open("deepseek_vl2/serve/assets/custom.js", "r", encoding="utf-8") as f, op
 def reload_javascript():
     print("Reloading javascript...")
     js = f"<script>{customJS}</script><script>{kelpyCodos}</script>"
+    js = " "#No Javascript , thanks
 
     def template_response(*args, **kwargs):
         res = GradioTemplateResponseOriginal(*args, **kwargs)
