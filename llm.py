@@ -30,9 +30,12 @@ def load_model():
 tokenizer, model = load_model()
 
 def inference_fn(prompt: str, temperature: float = 0.6, max_tokens: int = 512):
-    # Add the system prompt if needed:
-    system_prompt = f"该助手为 DeepSeek-R1，由深度求索公司创造。\n今天是 {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}。\n"
+    # Ensure temperature is > 0
+    temperature = max(0.01, float(temperature))
+
+    system_prompt = "This is DeepSeek-R1-0528-Qwen3-8B responding.\n"
     full_prompt = system_prompt + prompt
+
     inputs = tokenizer(full_prompt, return_tensors="pt").to(model.device)
     with torch.no_grad():
         output_tokens = model.generate(
@@ -43,15 +46,16 @@ def inference_fn(prompt: str, temperature: float = 0.6, max_tokens: int = 512):
             do_sample=True,
             pad_token_id=tokenizer.eos_token_id
         )
+
     output = tokenizer.decode(output_tokens[0], skip_special_tokens=True)
-    # Optionally remove the prompt part:
     return output[len(full_prompt):].strip()
+
 
 iface = gr.Interface(
     fn=inference_fn,
     inputs=[
         gr.Textbox(lines=6, label="Prompt"),
-        gr.Slider(minimum=0.0, maximum=1.0, value=0.6, label="Temperature"),
+        gr.Slider(minimum=0.01, maximum=1.0, value=0.6, label="Temperature"),
         gr.Slider(minimum=16, maximum=2048, value=512, step=16, label="Max new tokens")
     ],
     outputs=[gr.Textbox(lines=6, label="Model response")],
