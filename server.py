@@ -825,7 +825,7 @@ if __name__ == "__main__":
                              "Otherwise, default value is -1, which means we do not use incremental_prefilling.")
     parser.add_argument("--limit", type=int, default=4096, help="Maximum number of input text characters allowed per query.")
 
-    global args
+    #global args
     args = parser.parse_args()
 
     if (GREEK_MENU):
