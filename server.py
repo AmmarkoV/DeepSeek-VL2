@@ -19,7 +19,7 @@
 
 # -*- coding:utf-8 -*-
 from argparse import ArgumentParser
-args = None
+#args = None
 
 import os
 def file_exists(path):
