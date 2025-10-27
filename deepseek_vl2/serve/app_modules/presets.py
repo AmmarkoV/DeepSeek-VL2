@@ -20,7 +20,9 @@
 # -*- coding:utf-8 -*-
 import gradio as gr
 
+
 title = """<h1 align="left" style="min-width:200px; margin-top:0;">VLM</h1>"""
+
 description_top = """Special Tokens: `<image>`,     Visual Grounding: `<|ref|>{query}<|/ref|>`,    Grounding Conversation: `<|grounding|>{question}`"""
 description = """"""
 CONCURRENT_COUNT = 1
