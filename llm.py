@@ -73,6 +73,7 @@ if __name__ == "__main__":
     parser.add_argument("--ip", type=str, default="0.0.0.0", help="ip address")
     parser.add_argument("--port", type=int, default=8083, help="port number")
     parser.add_argument("--public", type=bool, default=False, help="share link") 
+    args = parser.parse_args()
 
 
     iface.launch(server_name=args.ip, server_port=args.port, share=args.public)
