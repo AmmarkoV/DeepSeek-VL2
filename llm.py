@@ -60,7 +60,7 @@ iface = gr.Interface(
     inputs=[
         gr.Textbox(lines=6, label="Prompt"),
         gr.Slider(minimum=0.01, maximum=1.0, value=0.6, label="Temperature"),
-        gr.Slider(minimum=16, maximum=2048, value=512, step=16, label="Max new tokens")
+        gr.Slider(minimum=16, maximum=16384, value=512, step=16, label="Max new tokens")
     ],
     outputs=[gr.Textbox(lines=6, label="Model response")],
     title="DeepSeek-R1-0528-Qwen3-8B Chat",
