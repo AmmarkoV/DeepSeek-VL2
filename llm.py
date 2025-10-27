@@ -2,6 +2,8 @@
 # OR 
 # python3 -m venv venv && source venv/bin/activate && python3 -m pip install -r requirements_llm.txt
 
+from argparse import ArgumentParser
+
 import gradio as gr
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 import torch
@@ -66,5 +68,12 @@ iface = gr.Interface(
 )
 
 if __name__ == "__main__":
-    iface.launch(server_name="0.0.0.0", server_port=8083, share=False)
+
+    parser = ArgumentParser()
+    parser.add_argument("--ip", type=str, default="0.0.0.0", help="ip address")
+    parser.add_argument("--port", type=int, default=8083, help="port number")
+    parser.add_argument("--public", type=bool, default=False, help="share link") 
+
+
+    iface.launch(server_name=args.ip, server_port=args.port, share=args.public)
 
