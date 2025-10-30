@@ -3,7 +3,7 @@
 # python3 -m venv venv && source venv/bin/activate && python3 -m pip install -r requirements_llm.txt
 
 from argparse import ArgumentParser
-
+import subprocess
 import gradio as gr
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 import torch
@@ -54,8 +54,15 @@ def inference_fn(prompt: str, temperature: float = 0.6, max_tokens: int = 512):
     output = tokenizer.decode(output_tokens[0], skip_special_tokens=True)
     return output[len(full_prompt):].strip()
 
+def get_nvidia_smi():
+    try:
+        result = subprocess.run(["nvidia-smi"], capture_output=True, text=True)
+        return result.stdout
+    except Exception as e:
+        return f"Error running nvidia-smi: {e}"
 
-iface = gr.Interface(
+# Define two tabs
+chat_tab = gr.Interface(
     fn=inference_fn,
     inputs=[
         gr.Textbox(lines=6, label="Prompt"),
@@ -67,14 +74,23 @@ iface = gr.Interface(
     description="Chat with DeepSeek-R1-0528-Qwen3-8B model."
 )
 
-if __name__ == "__main__":
+gpu_tab = gr.Interface(
+    fn=get_nvidia_smi,
+    inputs=[],
+    outputs=gr.Textbox(lines=20, label="nvidia-smi output"),
+    title="GPU Monitor",
+    description="Displays the current GPU usage using nvidia-smi."
+)
 
+# Combine into a tabbed UI
+demo = gr.TabbedInterface([chat_tab, gpu_tab], ["Chat", "GPU Monitor"])
+
+if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--ip", type=str, default="0.0.0.0", help="ip address")
     parser.add_argument("--port", type=int, default=8083, help="port number")
     parser.add_argument("--public", type=bool, default=False, help="share link") 
     args = parser.parse_args()
 
-
-    iface.launch(server_name=args.ip, server_port=args.port, share=args.public)
+    demo.launch(server_name=args.ip, server_port=args.port, share=args.public)
 
