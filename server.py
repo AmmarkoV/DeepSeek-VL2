@@ -559,9 +559,9 @@ def predict(
 
 
     del all_conv
-    del conversation
+    #del conversation
     del pil_images
-    del x   # only if exists
+    #del x   # only if exists
 
     gc.collect()
     torch.cuda.empty_cache()
