@@ -461,6 +461,9 @@ def predict(
     """
     print("running the prediction function")
     try:
+
+        history[:] = [] #Get rid of history, we don't have enough memory :(
+  
         tokenizer, vl_gpt, vl_chat_processor = fetch_model(model_select_dropdown)
 
         if text == "":
