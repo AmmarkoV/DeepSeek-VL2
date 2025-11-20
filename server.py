@@ -22,6 +22,9 @@ from argparse import ArgumentParser
 #args = None
 
 import os
+import gc
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
 def file_exists(path):
     return os.path.exists(path)
 
@@ -553,7 +556,16 @@ def predict(
             yield gradio_chatbot_output, to_gradio_history(conversation), "Generating..."
 
     print("flushed result to gradio")
+
+
+    del all_conv
+    del conversation
+    del pil_images
+    del x   # only if exists
+
+    gc.collect()
     torch.cuda.empty_cache()
+    torch.cuda.ipc_collect()
 
     if is_variable_assigned("x"):
         print(f"{model_select_dropdown}:\n{text}\n{'-' * 80}\n{x}\n{'=' * 80}")
