@@ -61,6 +61,8 @@ menuT["Are the workers wearing protective gloves and protective helmets?"]="Φο
 menuT["Is the worker wearing gloves?"]="Φοράνε οι εργαζόμενοι προστατευτικά γάντια;"
 menuT["Is the conveyor line full?"]="Είναι γεμάτη η γραμμή παραγωγής;"
 menuT["Is there a person overseeing the work station ?"]="Υπάρχει εργαζόμενος που επιβλέπει την θέση παραγωγής;"
+menuT["Are the workers wearing protective hemlets and vests?"]="Φορούν οι εργαζόμενοι προστατευτικά κράνη και γιλέκα;"
+menuT["What protection measures is the worker using?"]="Τι μέτρα προστασίας χρησιμοποιεί ο εργαζόμενος;"
 
 
 def t(inputString):
@@ -253,6 +255,18 @@ examples_list = [
     [
         ["examples/sample05.jpg"],
         "<|grounding|> %s" % (t("Is there a person overseeing the work station ?")),
+    ],
+
+    # grounding conversation
+    [
+        ["examples/sample06.jpg"],
+        "<|grounding|> %s" % (t("Are the workers wearing protective hemlets and vests?")),
+    ],
+
+    # grounding conversation
+    [
+        ["examples/sample07.jpg"],
+        "<|grounding|> %s" % (t("What protection measures is the worker using?")),
     ]
 ]
 
