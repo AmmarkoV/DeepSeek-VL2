@@ -182,7 +182,7 @@ def main():
             f.flush()
 
             processed += 1
-            print(f"Processed frame {frame_idx} -> row {processed}")
+            print(f"\r   Processed frame {frame_idx} -> row {processed}            ",end="",flush=True)
 
             if args.max_frames and processed >= args.max_frames:
                 break
@@ -191,6 +191,9 @@ def main():
 
     cap.release()
     print(f"Saved CSV to: {args.output}")
+
+    os.system("python3 plot_video_qa_results.py --video %s --csv %s --save_video" % (args.input,args.output)) 
+
 
 
 if __name__ == "__main__":
