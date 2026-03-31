@@ -185,7 +185,12 @@ for i in range(startAt, len(files)):
     # Output the result
     #print("result[0][0][1] ",result[0][0][1])
     question = this_user_prompt #Don't try to recover it from the list..
-    response = sanitize_string(result[0][0][1])
+    try:
+        response = sanitize_string(result[0][0][1])
+    except (IndexError, TypeError) as e:
+        print(f"WARNING: unexpected result structure at index {i}: {e}")
+        print(f"  result type={type(result)}, value={result!r}")
+        response = ""
 
     # Print on screen
     print(f"Processing {1 + i}/{len(files)} | {hz:.2f} Hz / " , end="")
