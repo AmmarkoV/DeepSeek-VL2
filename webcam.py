@@ -3,12 +3,22 @@
 # python3 -m pip install opencv-python sounddevice kokoro gradio-client
 
 import cv2
+import argparse
+import subprocess
 from threading import Thread
 from kokoro import KPipeline
 from vqa_client import run_vqa  # now uses your gradio client logic
 
 import sounddevice as sd
 import numpy as np
+
+
+def translate_greek_to_english(text):
+    result = subprocess.run(
+        ['argos-translate', '--from', 'el', '--to', 'en', text],
+        capture_output=True, text=True
+    )
+    return result.stdout.strip()
 
 
 def speak(text, pipeline, voice):
@@ -21,6 +31,18 @@ def speak(text, pipeline, voice):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('question', nargs='?', default=None, help='Question in Greek')
+    args = parser.parse_args()
+
+    if args.question:
+        greek_question = args.question
+        english_question = translate_greek_to_english(greek_question)
+        print(f"Question: {greek_question} / {english_question}")
+    else:
+        greek_question = "Τι βλέπεις;"
+        english_question = "What do you see?"
+
     ttsGreek = KPipeline(lang_code='e')  # Greek TTS
     ttsEnglish = KPipeline(lang_code='a')  # Greek TTS
 
@@ -29,7 +51,7 @@ def main():
         print("⚠️ Cannot open camera")
         return
 
-    print("Καλησπέρα! Θα ρωτήσω: Τι βλέπεις; (Press 'q' to quit)")
+    print(f"Καλησπέρα! Θα ρωτήσω: {greek_question} (Press 'q' to quit)")
 
     while True:
         ret, frame = cam.read()
@@ -37,18 +59,14 @@ def main():
             print("⚠️ Δεν μπορώ να διαβάσω το πλαίσιο")
             break
 
-   
-        key = cv2.waitKey(1) & 0xFF 
+
+        key = cv2.waitKey(1) & 0xFF
         if  key == ord('g'):
-            # Greek question
-            question = "Τι βλέπεις;"
-            answer = run_vqa(frame, question, greek=True)
+            answer = run_vqa(frame, greek_question, greek=True)
             print(f"🗣️ Απάντηση: {answer}")
             Thread(target=speak, args=(answer, ttsGreek,'ef_dora'), daemon=True).start()
         if  key == ord('e'):
-            # Greek question
-            question = "What do you see?"
-            answer = run_vqa(frame, question, greek=False)
+            answer = run_vqa(frame, english_question, greek=False)
             print(f"🗣️ Answer: {answer}")
             Thread(target=speak, args=(answer, ttsEnglish,'af_bella'), daemon=True).start()
 
