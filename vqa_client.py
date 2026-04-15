@@ -5,9 +5,14 @@ import numpy as np
 from gradio_client import Client, handle_file
 
 # Server configuration
-#client = Client("http://139.91.185.16:8083")  # Change if needed
-client = Client("http://147.52.17.119:8083")  # Change if needed
- 
+SERVER_URL = "http://147.52.17.119:8083"
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = Client(SERVER_URL)
+    return _client
 
 def run_vqa(image: np.ndarray, question: str, greek=False):
     # Save image to a temporary file
@@ -18,6 +23,8 @@ def run_vqa(image: np.ndarray, question: str, greek=False):
     try:
         imageFile = handle_file(filename)
         imageList = [imageFile]
+
+        client = _get_client()
 
         # Reset session
         client.predict(api_name="/reset_state")
