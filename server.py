@@ -75,6 +75,8 @@ def t(inputString):
 
 import io
 import sys
+import time
+import threading
 import base64
 from PIL import Image
 
@@ -474,6 +476,7 @@ def predict(
     generator: A generator that yields the chatbot outputs, history, and status.
     """
     print("running the prediction function")
+    request_start = time.time()
     try:
 
         history[:] = [] #Get rid of history, we don't have enough memory :(
@@ -584,6 +587,14 @@ def predict(
     torch.cuda.empty_cache()
     torch.cuda.ipc_collect()
 
+    # One line per request so slow drift (time, VRAM, RAM, threads, upload cache) is visible
+    with open("/proc/self/statm") as f:
+        rss_gb = int(f.read().split()[1]) * os.sysconf("SC_PAGE_SIZE") / 1e9
+    print(f"[stats] {time.time() - request_start:.2f}s "
+          f"alloc={torch.cuda.memory_allocated() / 1e9:.2f}GB "
+          f"reserved={torch.cuda.memory_reserved() / 1e9:.2f}GB "
+          f"rss={rss_gb:.2f}GB threads={threading.active_count()}")
+
     if is_variable_assigned("x"):
         print(f"{model_select_dropdown}:\n{text}\n{'-' * 80}\n{x}\n{'=' * 80}")
         print(
@@ -653,7 +664,7 @@ def build_demo(args):
     #with open("deepseek_vl2/serve/assets/custom.css", "r", encoding="utf-8") as f:
     #    customCSS = f.read()
 
-    with gr.Blocks(theme=gr.themes.Soft()) as demo:
+    with gr.Blocks(theme=gr.themes.Soft(), delete_cache=(3600, 3600)) as demo:
         history = gr.State([])
         input_text = gr.State()
         input_images = gr.State()

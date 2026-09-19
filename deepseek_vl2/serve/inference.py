@@ -191,7 +191,22 @@ def generate(
     else:
         generation_config["do_sample"] = False
 
-    thread = Thread(target=vl_gpt.generate, kwargs=generation_config)
-    thread.start()
+    # Run generation in a guarded thread: if it raises, end the streamer so the
+    # consumer below doesn't block forever, then re-raise in this thread.
+    error = []
 
-    yield from streamer
+    def _run():
+        try:
+            vl_gpt.generate(**generation_config)
+        except BaseException as e:
+            error.append(e)
+            streamer.end()
+
+    thread = Thread(target=_run)
+    thread.start()
+    try:
+        yield from streamer
+    finally:
+        thread.join()
+    if error:
+        raise error[0]
