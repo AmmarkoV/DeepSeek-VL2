@@ -261,13 +261,13 @@ examples_list = [
 
     # grounding conversation
     [
-        ["examples/sample06.jpg"],
+        ["examples/sample_06.jpg"],
         "<|grounding|> %s" % (t("Are the workers wearing protective hemlets and vests?")),
     ],
 
     # grounding conversation
     [
-        ["examples/sample07.jpg"],
+        ["examples/sample_07.jpg"],
         "<|grounding|> %s" % (t("What protection measures is the worker using?")),
     ]
 ]
