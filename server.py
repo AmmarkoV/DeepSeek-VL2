@@ -714,26 +714,32 @@ def batch_caption(
         kept_indices.append(i)
 
     results = [""] * len(files)
-    if sample_list:
-        batched = vl_chat_processor.batchify(sample_list).to(vl_gpt.device)
-        captions = generate_batch(
-            vl_gpt, tokenizer, batched,
-            max_gen_len=max_length_tokens,
-            temperature=temperature,
-            top_p=top_p,
-            repetition_penalty=repetition_penalty,
-        )
-        for idx, caption in zip(kept_indices, captions):
-            results[idx] = strip_stop_words(caption, [])
-        del batched
-
-    gc.collect()
-    torch.cuda.empty_cache()
-    torch.cuda.ipc_collect()
     try:
-        ctypes.CDLL("libc.so.6").malloc_trim(0)
-    except Exception:
-        pass
+        if sample_list:
+            batched = vl_chat_processor.batchify(sample_list).to(vl_gpt.device)
+            try:
+                captions = generate_batch(
+                    vl_gpt, tokenizer, batched,
+                    max_gen_len=max_length_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    repetition_penalty=repetition_penalty,
+                )
+                for idx, caption in zip(kept_indices, captions):
+                    results[idx] = strip_stop_words(caption, [])
+            finally:
+                del batched
+    finally:
+        # Must run even on OOM/exception -- otherwise a failed batch leaves
+        # its partially-allocated tensors uncleaned, and the *next* attempt
+        # has even less headroom than the one that just failed.
+        gc.collect()
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+        try:
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
+        except Exception:
+            pass
 
     return results
 
@@ -1001,5 +1007,6 @@ if __name__ == "__main__":
         share=args.public,
         server_name=args.ip,
         server_port=args.port,
-        root_path=args.root_path
+        root_path=args.root_path,
+        show_error=True,
     )
