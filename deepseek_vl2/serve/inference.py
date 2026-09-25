@@ -260,5 +260,18 @@ def generate_batch(
         )
 
     output_ids = vl_gpt.generate(**generation_config)
-    new_tokens = output_ids[:, prompt_len:]
+
+    # HF's generate() concatenates prompt+generated when given input_ids, but
+    # when generation starts from inputs_embeds (our case -- there's no
+    # input_ids for the image-fused prompt to prepend token IDs for), many
+    # model implementations return *only* the newly generated tokens instead.
+    # Detect which happened rather than assume: if the returned length is
+    # already <= prompt_len, it can't include the prompt (prompt_len counts
+    # hundreds of image-patch tokens, vastly more than max_new_tokens), so
+    # slicing at prompt_len would silently produce an empty result.
+    if output_ids.shape[1] > prompt_len:
+        new_tokens = output_ids[:, prompt_len:]
+    else:
+        new_tokens = output_ids
+
     return [tokenizer.decode(seq, skip_special_tokens=True).strip() for seq in new_tokens]
