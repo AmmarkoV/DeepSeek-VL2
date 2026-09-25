@@ -210,3 +210,55 @@ def generate(
         thread.join()
     if error:
         raise error[0]
+
+
+@torch.inference_mode()
+def generate_batch(
+    vl_gpt,
+    tokenizer,
+    batched_inputs,
+    max_gen_len: int = 32,
+    temperature: float = 0.6,
+    repetition_penalty: float = 1.1,
+    top_p: float = 0.9,
+) -> List[str]:
+    """
+    Non-streaming batched generation for N *independent* examples in one
+    forward pass. `batched_inputs` must come from
+    vl_chat_processor.batchify([...], padding="left") (the default) -- left
+    padding means every row in the batch shares the same prompt length, so
+    the newly-generated tokens start at the same column index for every row
+    and can be sliced out uniformly below.
+
+    batchify() only pads/stacks tensors from independently-built
+    VLChatProcessorOutput objects; it never merges their token sequences, so
+    this does not let one example's content leak into another's -- each row
+    is generated attending only to its own prompt (that's what attention_mask
+    enforces), just computed together for GPU efficiency.
+
+    Returns one decoded string per input example, in the same order.
+    """
+    inputs_embeds = vl_gpt.prepare_inputs_embeds(**batched_inputs)
+    prompt_len = batched_inputs.input_ids.shape[1]
+
+    do_sample = temperature > 0
+    generation_config = dict(
+        inputs_embeds=inputs_embeds,
+        attention_mask=batched_inputs.attention_mask,
+        pad_token_id=tokenizer.eos_token_id,
+        bos_token_id=tokenizer.bos_token_id,
+        eos_token_id=tokenizer.eos_token_id,
+        max_new_tokens=max_gen_len,
+        use_cache=True,
+        do_sample=do_sample,
+    )
+    if do_sample:
+        generation_config.update(
+            top_p=top_p,
+            temperature=temperature,
+            repetition_penalty=repetition_penalty,
+        )
+
+    output_ids = vl_gpt.generate(**generation_config)
+    new_tokens = output_ids[:, prompt_len:]
+    return [tokenizer.decode(seq, skip_special_tokens=True).strip() for seq in new_tokens]

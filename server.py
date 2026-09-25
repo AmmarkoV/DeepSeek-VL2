@@ -216,6 +216,7 @@ from deepseek_vl2.serve.app_modules.utils import (
 from deepseek_vl2.serve.inference import (
     convert_conversation_to_prompts,
     deepseek_generate,
+    generate_batch,
     load_model,
 )
 
@@ -663,6 +664,80 @@ def preview_images(files):
     return image_paths
 
 
+def batch_caption(
+    files,
+    prompt,
+    temperature=0.6,
+    top_p=0.9,
+    repetition_penalty=1.1,
+    max_length_tokens=32,
+):
+    """
+    True batched captioning: one GPU forward pass for all files. Each file
+    gets its own independent, single-turn conversation (history=[] every
+    time, exactly like a fresh "New Conversation" click) -- batchify() only
+    combines them at the tensor/padding level, so no image's content or
+    caption can bleed into another's. Returns a list of caption strings in
+    the same order as `files`.
+    """
+    if not files:
+        return []
+
+    tokenizer, vl_gpt, vl_chat_processor = fetch_model(args.model_name)
+
+    sample_list = []
+    kept_indices = []
+    for i, f in enumerate(files):
+        try:
+            image = Image.open(f.name).convert("RGB")
+        except Exception as e:
+            print(f"batch_caption: failed to load {f.name}: {e}")
+            continue
+
+        conversation = generate_prompt_with_history(
+            prompt, [image], [],  # history=[] -- independent dialog per image
+            vl_chat_processor, tokenizer, max_length=2048,
+        )
+        if conversation is None:
+            print(f"batch_caption: prompt build failed for {f.name}")
+            continue
+
+        all_conv, _ = convert_conversation_to_prompts(conversation)
+        prepare = vl_chat_processor(
+            conversations=all_conv,
+            images=[image],
+            force_batchify=False,
+            inference_mode=True,
+            system_prompt="",
+        )
+        sample_list.append(prepare)
+        kept_indices.append(i)
+
+    results = [""] * len(files)
+    if sample_list:
+        batched = vl_chat_processor.batchify(sample_list).to(vl_gpt.device)
+        captions = generate_batch(
+            vl_gpt, tokenizer, batched,
+            max_gen_len=max_length_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            repetition_penalty=repetition_penalty,
+        )
+        for idx, caption in zip(kept_indices, captions):
+            results[idx] = strip_stop_words(caption, [])
+        del batched
+
+    gc.collect()
+    torch.cuda.empty_cache()
+    torch.cuda.ipc_collect()
+    try:
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:
+        pass
+
+    return results
+
+
 def build_demo(args):
     # fetch model
     if not args.lazy_load:
@@ -852,6 +927,37 @@ def build_demo(args):
         )
 
         cancelBtn.click(cancel_outputing, [], [status_display], cancels=predict_events)
+
+        # ------------------------------------------------------------------
+        # Hidden batch-captioning endpoint (api_name="batch_caption").
+        # Not part of the visible chat UI -- called directly via
+        # gradio_client.predict(files, prompt, ..., api_name="/batch_caption").
+        # Runs all uploaded files through one batched GPU forward pass; each
+        # file still gets its own independent single-turn conversation (see
+        # batch_caption()), so this is a throughput optimization only, not a
+        # change in what gets captioned or how.
+        # ------------------------------------------------------------------
+        batch_files_in = gr.Files(visible=False)
+        batch_prompt_in = gr.Textbox(visible=False)
+        batch_temperature_in = gr.Number(value=0.6, visible=False)
+        batch_top_p_in = gr.Number(value=0.9, visible=False)
+        batch_repetition_penalty_in = gr.Number(value=1.1, visible=False)
+        batch_max_tokens_in = gr.Number(value=32, visible=False)
+        batch_out = gr.JSON(visible=False)
+        batch_btn = gr.Button(visible=False)
+        batch_btn.click(
+            fn=batch_caption,
+            inputs=[
+                batch_files_in,
+                batch_prompt_in,
+                batch_temperature_in,
+                batch_top_p_in,
+                batch_repetition_penalty_in,
+                batch_max_tokens_in,
+            ],
+            outputs=batch_out,
+            api_name="batch_caption",
+        )
 
     return demo
 
