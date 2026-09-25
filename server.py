@@ -23,6 +23,7 @@ from argparse import ArgumentParser
 
 import os
 import gc
+import ctypes
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 def file_exists(path):
@@ -283,7 +284,6 @@ def fetch_model(model_name: str, dtype=torch.bfloat16):
 
     if model_name in DEPLOY_MODELS:
         model_info = DEPLOY_MODELS[model_name]
-        print(f"{model_name} has been loaded.")
     else:
         print(f"{model_name} is loading...")
         DEPLOY_MODELS[model_name] = load_model(model_path, dtype=dtype)
@@ -586,6 +586,14 @@ def predict(
     gc.collect()
     torch.cuda.empty_cache()
     torch.cuda.ipc_collect()
+    try:
+        # gc.collect() only frees Python objects; glibc's allocator doesn't
+        # hand the underlying freed heap back to the OS by itself, so RSS
+        # keeps climbing over many requests even though tracked GPU memory
+        # stays flat. This asks glibc to release fragmented free arenas.
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:
+        pass
 
     # One line per request so slow drift (time, VRAM, RAM, threads, upload cache) is visible
     with open("/proc/self/statm") as f:
