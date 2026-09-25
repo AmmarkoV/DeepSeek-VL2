@@ -238,28 +238,39 @@ def generate_batch(
 
     Returns one decoded string per input example, in the same order.
     """
-    inputs_embeds = vl_gpt.prepare_inputs_embeds(**batched_inputs)
     prompt_len = batched_inputs.input_ids.shape[1]
+    inputs_embeds = None
+    generation_config = None
+    try:
+        inputs_embeds = vl_gpt.prepare_inputs_embeds(**batched_inputs)
 
-    do_sample = temperature > 0
-    generation_config = dict(
-        inputs_embeds=inputs_embeds,
-        attention_mask=batched_inputs.attention_mask,
-        pad_token_id=tokenizer.eos_token_id,
-        bos_token_id=tokenizer.bos_token_id,
-        eos_token_id=tokenizer.eos_token_id,
-        max_new_tokens=max_gen_len,
-        use_cache=True,
-        do_sample=do_sample,
-    )
-    if do_sample:
-        generation_config.update(
-            top_p=top_p,
-            temperature=temperature,
-            repetition_penalty=repetition_penalty,
+        do_sample = temperature > 0
+        generation_config = dict(
+            inputs_embeds=inputs_embeds,
+            attention_mask=batched_inputs.attention_mask,
+            pad_token_id=tokenizer.eos_token_id,
+            bos_token_id=tokenizer.bos_token_id,
+            eos_token_id=tokenizer.eos_token_id,
+            max_new_tokens=max_gen_len,
+            use_cache=True,
+            do_sample=do_sample,
         )
+        if do_sample:
+            generation_config.update(
+                top_p=top_p,
+                temperature=temperature,
+                repetition_penalty=repetition_penalty,
+            )
 
-    output_ids = vl_gpt.generate(**generation_config)
+        output_ids = vl_gpt.generate(**generation_config)
+    finally:
+        # If generate() OOMs partway through, inputs_embeds (the vision
+        # encoder's output -- the largest tensor here) and the kwargs dict
+        # holding it would otherwise stay referenced by this frame for as
+        # long as the exception/traceback is alive, which can outlive our
+        # caller's own cleanup. Drop them here, at the source, either way.
+        del inputs_embeds
+        del generation_config
 
     # HF's generate() concatenates prompt+generated when given input_ids, but
     # when generation starts from inputs_embeds (our case -- there's no
