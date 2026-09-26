@@ -714,34 +714,79 @@ def batch_caption(
         kept_indices.append(i)
 
     results = [""] * len(files)
+    if not sample_list:
+        return results
+
+    # Group images of similar prompt length (the token count grows with image
+    # size/tiling) so padding is small, and cap each sub-batch at
+    # batch_token_budget padded tokens so it fits the GPU headroom.
+    order = sorted(range(len(sample_list)), key=lambda j: len(sample_list[j].input_ids))
+    chunks, cur = [], []
+    for j in order:
+        n_tokens = len(sample_list[j].input_ids)  # sorted, so this is the chunk's max
+        if cur and (len(cur) + 1) * n_tokens > args.batch_token_budget:
+            chunks.append(cur)
+            cur = []
+        cur.append(j)
+    chunks.append(cur)
+
+    gen_kwargs = dict(
+        max_gen_len=max_length_tokens,
+        temperature=temperature,
+        top_p=top_p,
+        repetition_penalty=repetition_penalty,
+    )
     try:
-        if sample_list:
-            batched = vl_chat_processor.batchify(sample_list).to(vl_gpt.device)
-            try:
-                captions = generate_batch(
-                    vl_gpt, tokenizer, batched,
-                    max_gen_len=max_length_tokens,
-                    temperature=temperature,
-                    top_p=top_p,
-                    repetition_penalty=repetition_penalty,
-                )
-                for idx, caption in zip(kept_indices, captions):
-                    results[idx] = strip_stop_words(caption, [])
-            finally:
-                del batched
+        for chunk in chunks:
+            captions = _caption_chunk(
+                vl_gpt, tokenizer, vl_chat_processor,
+                [sample_list[j] for j in chunk], gen_kwargs,
+            )
+            for j, caption in zip(chunk, captions):
+                results[kept_indices[j]] = strip_stop_words(caption, [])
     finally:
         # Must run even on OOM/exception -- otherwise a failed batch leaves
         # its partially-allocated tensors uncleaned, and the *next* attempt
         # has even less headroom than the one that just failed.
-        gc.collect()
-        torch.cuda.empty_cache()
-        torch.cuda.ipc_collect()
-        try:
-            ctypes.CDLL("libc.so.6").malloc_trim(0)
-        except Exception:
-            pass
+        _release_cuda_memory()
 
     return results
+
+
+def _release_cuda_memory():
+    gc.collect()
+    torch.cuda.empty_cache()
+    torch.cuda.ipc_collect()
+    try:
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:
+        pass
+
+
+def _caption_chunk(vl_gpt, tokenizer, vl_chat_processor, samples, gen_kwargs):
+    """
+    Caption one sub-batch. On CUDA OOM, free memory and retry as two halves
+    (recursively) so an oversized batch degrades to smaller ones instead of
+    failing; a single sample that still OOMs re-raises.
+    """
+    batched = vl_chat_processor.batchify(samples).to(vl_gpt.device)
+    try:
+        return generate_batch(vl_gpt, tokenizer, batched, **gen_kwargs)
+    except torch.OutOfMemoryError:
+        if len(samples) == 1:
+            raise
+        pass  # retry below, outside the except block, once the traceback
+              # (and the tensors its frames reference) has been released
+    finally:
+        del batched
+
+    _release_cuda_memory()
+    half = len(samples) // 2
+    print(f"batch_caption: OOM on batch of {len(samples)} "
+          f"({samples[-1].input_ids.shape[0]} tokens max), retrying as {half}+{len(samples) - half}",
+          flush=True)
+    return (_caption_chunk(vl_gpt, tokenizer, vl_chat_processor, samples[:half], gen_kwargs)
+            + _caption_chunk(vl_gpt, tokenizer, vl_chat_processor, samples[half:], gen_kwargs))
 
 
 def build_demo(args):
@@ -984,6 +1029,9 @@ if __name__ == "__main__":
                              "When using 40G gpu for vl2-small, set a chunk_size for incremental_prefilling."
                              "Otherwise, default value is -1, which means we do not use incremental_prefilling.")
     parser.add_argument("--limit", type=int, default=4096, help="Maximum number of input text characters allowed per query.")
+    parser.add_argument("--batch_token_budget", type=int, default=8192,
+                        help="Max padded prompt tokens (batch size x longest prompt) per batch_caption GPU pass; "
+                             "larger requests are split into several passes.")
 
     #global args
     args = parser.parse_args()

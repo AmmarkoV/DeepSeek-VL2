@@ -36,7 +36,8 @@ from transformers.cache_utils import Cache, DynamicCache
 from transformers.modeling_attn_mask_utils import _prepare_4d_causal_attention_mask
 from transformers.models.llama.modeling_llama import (
     LlamaAttention,
-    LlamaFlashAttention2
+    LlamaFlashAttention2,
+    LlamaSdpaAttention
 )
 from transformers.modeling_outputs import (
     BaseModelOutputWithPast,
@@ -1218,9 +1219,13 @@ ATTENTION_CLASSES = {
 
     "mla_eager": DeepseekV2Attention,
     "mla_flash_attention_2": DeepseekV2FlashAttention2,
+    "mla_sdpa": DeepseekV2Attention,
 
     "mha_eager": LlamaAttention,
-    "mha_flash_attention_2": LlamaFlashAttention2
+    "mha_flash_attention_2": LlamaFlashAttention2,
+    # torch SDPA (memory-efficient kernel): avoids materialising the
+    # heads x L x L fp32 score matrix that eager attention allocates
+    "mha_sdpa": LlamaSdpaAttention,
 }
 
 
@@ -1345,6 +1350,8 @@ class DeepseekV2PreTrainedModel(PreTrainedModel):
     _no_split_modules = ["DeepseekV2DecoderLayer"]
     _skip_keys_device_placement = "past_key_values"
     _supports_flash_attn_2 = True
+    # MHA layers use LlamaSdpaAttention; MLA has no SDPA kernel and maps back to eager
+    _supports_sdpa = True
     _supports_cache_class = True
 
     def _init_weights(self, module):
@@ -1722,6 +1729,11 @@ class DeepseekV2ForCausalLM(DeepseekV2PreTrainedModel):
         )
 
         hidden_states = outputs[0]
+        if labels is None:
+            # Inference only needs the next-token logits. Projecting every prompt
+            # position onto the 129k vocab (then upcasting to fp32) costs ~0.5 GiB
+            # per image-prompt at prefill and OOMs batched captioning.
+            hidden_states = hidden_states[:, -1:, :]
         logits = self.lm_head(hidden_states)
         logits = logits.float()
 

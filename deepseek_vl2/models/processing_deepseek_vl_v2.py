@@ -631,6 +631,8 @@ class DeepseekVLV2Processor(ProcessorMixin):
             batched_labels[batched_labels == self.pad_id] = self.ignore_id  # labels正常不会出现pad_id，无需额外保护
             batched_images_seq_mask = self.tokenizer.pad({"input_ids": batched_images_seq_mask})["input_ids"]
             batched_images_seq_mask[batched_images_seq_mask == self.pad_id] = False
+            # tokenizer.pad returns int64; masked_scatter_ in newer torch requires a bool mask
+            batched_images_seq_mask = batched_images_seq_mask.bool()
         else:
             batched_input_ids = pad_sequence(batched_input_ids, batch_first=True, padding_value=self.pad_id)
             batched_labels = pad_sequence(batched_labels, batch_first=True, padding_value=self.ignore_id)

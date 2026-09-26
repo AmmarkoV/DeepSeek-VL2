@@ -30,6 +30,7 @@ from transformers import (
 )
 
 from deepseek_vl2.models import DeepseekVLV2Processor, DeepseekVLV2ForCausalLM
+from deepseek_vl2.models.modeling_deepseek_vl_v2 import DeepseekVLV2Config
 from deepseek_vl2.models.conversation import Conversation
 
 
@@ -37,10 +38,18 @@ def load_model(model_path, dtype=torch.bfloat16):
     vl_chat_processor = DeepseekVLV2Processor.from_pretrained(model_path)
     tokenizer = vl_chat_processor.tokenizer
 
+    # Language model uses torch SDPA attention when available (MHA only --
+    # vl2-tiny; MLA models have no SDPA class and stay on eager). Eager
+    # attention's L x L score matrix is what OOMs large-image batches.
+    config = DeepseekVLV2Config.from_pretrained(model_path)
+    if not config.language_config.use_mla:
+        config.language_config._attn_implementation = "sdpa"
+
     vl_gpt: DeepseekVLV2ForCausalLM = AutoModelForCausalLM.from_pretrained(
-        model_path, trust_remote_code=True, torch_dtype=dtype
+        model_path, config=config, trust_remote_code=True, torch_dtype=dtype
     )
     vl_gpt = vl_gpt.cuda().eval()
+    print("language attention:", type(vl_gpt.language.model.layers[0].self_attn).__name__, flush=True)
     return tokenizer, vl_gpt, vl_chat_processor
 
 
